@@ -1,7 +1,7 @@
-To have [JCLPCB](https://jlcpcb.com) make your Control Board:
+To have [JCLPCB](https://jlcpcb.com) make your Panel LED modules:
 1) Create an account at jlcpcb.com
 2) Click "Upload Gerber file" or "order now"
-3) Upload the Gerber file (.zip, do not decompress!) for the PCB you want to make; leave all options at their defaults. You can choose a PCB color though...
+3) Upload the Gerber file (.zip, do not decompress!) for the PCB you want to make; leave all options at their defaults. Given the panel enclosure is red, a red PCB looks nice.
 4) Activate "PCB assembly", click "NEXT"
 5) Enjoy a view of the PCB, click "NEXT"
 6) Upload the BOM and "PickAndPlace" (CPL) files, click "Process BOM & CPL"
