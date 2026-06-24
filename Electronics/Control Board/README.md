@@ -2,6 +2,8 @@
 
 The Control Board is a re-purposed Control Board originally used for the [VSR](https://vsr.out-a-ti.me).
 
+![CB](img/hw_cb.jpg)
+
 It has connectors for
 - power (unlike when used for a VSR, for the Jukebox, the connectors should be put on the front)
 - signal LED and lights for illumination (labeled "9", "10", "4C")
