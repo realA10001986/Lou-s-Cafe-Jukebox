@@ -10,6 +10,7 @@ It has connectors for
 - jog dials (XH4, front; labeled "Pushwheels")
 - panel LEDs (XH-4AWD, rear)
 - speaker for audio (PH 2pin)
+- (Timetravel: Unused; the bottom right 4-pin connector is not required)
 
 To have [JCLPCB](https://jlcpcb.com) make your Control Board:
 1) Create an account at jlcpcb.com
