@@ -1,4 +1,4 @@
-## Jukebox VSR Control Board
+## Jukebox Control Board
 
 The Control Board is a re-purposed Control Board originally used for the [VSR](https://vsr.out-a-ti.me).
 
