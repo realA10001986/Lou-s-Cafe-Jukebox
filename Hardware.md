@@ -5,7 +5,7 @@ Parts needed:
 - [VSR control board](https://github.com/realA10001986/VSR/tree/main/Electronics/Control%20Board)
 - Rotary Encoder controllers: 2x [DuPPA 2.1](https://www.duppa.net/product/i2cencoder-v2-1-2/) or [Adafruit 4991](https://www.adafruit.com/product/4991); 1x [DuPPA Mini](https://www.duppa.net/product/i2c-encoder-mini/) (due to space constrains)
 - Rotary Encoders: 2x Bourns PEC11R-4320K-S0012, 1x Bourns PEC11R-4225K-S0024
-- 2x [LED panel PCB](Electronics/)
+- 2x [LED panel PCB](Electronics/LED_Panel)
 - 2x Keyes 3W LED module (1x white, 1x blue; if you don't find those colors, just take cold-white and buy suitable LED beads, eg on amazon)
 - Standard White LED (5mm)
 - MicroSD extension
