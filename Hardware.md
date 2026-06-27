@@ -83,6 +83,8 @@ To detach the red button, remove the top chrome part as a whole:
 
 It is held in place by three or five screws through the ceiling of the menu area. You can then remove the lever that turns the menu page to make room for using a screw driver to press the latches and pull the button out. Inside are two springs, which are big enough to fit a LED in their center. Don't forget to insulate the LED's legs.
 
+![TopLED](img/hw_topled.jpg)
+
 ### Illumination
 
 Two "Keyes" 3W high power LED modules are used for illumination. There are two LEDs: The front one should be warm-white, the rear one blue. 
