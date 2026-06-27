@@ -331,7 +331,7 @@ The Jukebox supports MQTT protocol versions 3.1.1 and 5.0 for the following feat
 
 ### Remote Mode: Remote control third party MQTT-enabled music player
 
-This is explained in detail [here](#-topics-and-messages-for-remote-mode).
+This is explained in detail [here](#settings-for-remote-mode).
 
 ### Control the Jukebox via MQTT
 
