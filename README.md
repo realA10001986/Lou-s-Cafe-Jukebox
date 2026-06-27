@@ -12,6 +12,7 @@ First things first: Why not go with a movie-accurate Seeburg?
 - They are expensive and often optically and mechanically in dire straits, given their age.
 
 So, I decided to go with the Crosley CR-9 instead. Modification instructions are [here](Hardware.md).
+
 Firmware features include
 - Three modes of operation:
   - Music Player to play the mp3 files from SD card; capacity 2000 tracks, organized in 20 folders for 100 tracks each
