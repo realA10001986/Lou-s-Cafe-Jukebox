@@ -648,7 +648,7 @@ For the 'goto' command, topic and/or message can contain placeholders which will
 
 Examples: <br />
 If your player expects a JSON object and uses track numbers: **{"goto":{N}}** <br />
-If your player expects a JSON object and uses Jukebox numbering: **{"goto":{JL}-{JN}}** <br />
+If your player expects a JSON object and uses Jukebox numbering: **{"goto":"{JL}-{JN}"}** <br />
 If your player expects a plain string and uses Jukebox numbering: **GOTO_{JL}_{JN}** <br />
 
 If the _topic_ for 'volume down' is not empty, it is assumed that 'volume up' and 'volume down' are in fact commands to increase/decrease the volume. If 'volume down' is empty, it is assumed that the command in 'volume up' is in fact 'volume set'. In that case, topic and/or message can contain placeholders which will be replaced accordingly:
