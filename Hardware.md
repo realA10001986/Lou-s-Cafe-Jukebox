@@ -149,6 +149,8 @@ Click on the images to see a high-resolution version.
 
 I left parts of the cassette assembly in to 1) avoid a big hole resulting from removing the Eject button, 2) give the device some weight.
 
+### And here it is
+
 ![Inaction](img/hw_jb2.jpg)
 
 ---
