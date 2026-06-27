@@ -36,16 +36,18 @@ The PCBs fit exactly into the panel's enclosure, I just drilled two holes to hol
 
 ![LED panel holes](img/hw_panel_holes.jpg)
 
+The PCBs have a solder jumper on the back. For the upper panel, "0x21" and center need to be joined, the the bottom one "0x23" and center. See schematics above.
+
 ![LED panel PCBs](img/hw_panel_pcbs.jpg)
 
 ### VSR control board
 
-The control board is a more or less unmodified VSR control board.
+The control board is a more or less unmodified [VSR](https://vsr.out-a-ti.me) control board.
 
 Preparations:
 - The LVcc solder jumper needs to be set to 5V.
-- The power connector should be soldered onto the top of the board, as opposed to the bottom like when used for a VSR.
-- The XH-4AWD connector on the bottom is required unless you prefer daisy-chaining the LED panels and the rotary encoders. 
+- The power connector needs be soldered onto the top of the board, as opposed to the bottom like when used for a VSR.
+- The XH-4AWD connector on the bottom is required unless you prefer daisy-chaining the LED panels and the rotary encoders (which I don't recommend). 
 
 The control board is mounted in place of the old radio PCB. The screw holes match almost perfectly; I only had to cut away some material where the board itself and the ESP32 collide with the construction.
 
@@ -53,7 +55,7 @@ The control board is mounted in place of the old radio PCB. The screw holes matc
 
 ### Rotary Encoders
 
-While the firmware supports DuPPA and Adafruit, I recommend the DuPPA controllers, since those have a practical advantage: Two of them can be solder-joined. There needs to be around 1mm of space between them so that the knobs are centered in their holes:
+While the firmware supports both DuPPA and Adafruit, I recommend the DuPPA controllers, since those have a practical advantage: Two of them can be solder-joined. There needs to be around 1mm of space between them so that the knobs are centered in their holes:
 
 ![Rotencs](img/hw_rotenc1.jpg)
 
@@ -61,9 +63,9 @@ The bottom one is a DuPPA Mini, because the bezel is not wide enough for a regul
 
 ![Rotencs](img/hw_rotenc2.jpg)
 
-The controllers, from the top in final position, are DuPPA/Adafruit (volume), DuPPA/Adafruit (jog dial 1), DuPPA Mini (jog dial 2). The DuPPAs' solder joints need to be set as shown in the diagram above. In case of Adafruit, the top one can be used in its default configuration, the middle one needs "A0" to be closed. The DuPPA Mini is automatically configured by the firmware.
+The controllers, from the top in final, upright position, are DuPPA/Adafruit (volume), DuPPA/Adafruit (jog dial 1), DuPPA Mini (jog dial 2). The DuPPAs' solder joints need to be set as shown in the schematics above. In case of Adafruit, the top one can be used in its default configuration, the middle one needs "A0" to be closed. The DuPPA Mini is automatically configured by the firmware.
 
-The top one gets a PEC11R-4225K-S0024 for volume, the other two each a PEC11R-4320K-S0012 for letter/number selection.
+The top one gets a PEC11R-4225K-S0024 for volume, the other two each a PEC11R-4320K-S0012 for letter/number selection. Do yourself a favor and don't use no-name Chinese rotary encoders, go for Bourns.
 
 Optional: In order to make the buttons stick out more (which makes them easier to operate), I moved the bezel closer to the right hand side by drilling new screw holes right next to the old ones (purple arrows in the picture below). Also, I used a dremel to remove some material from the bezel (orange arrows) so that it can be moved further to the right without touching the button panel flap and the enclosure.
 
@@ -75,7 +77,11 @@ Optional: In order to make the buttons stick out more (which makes them easier t
 
 A white standard 5mm LED is mounted in the red pseudo-button at the top and used by the firmware for signals. A regular white LED plus a 68 Ohm resistor do fine.
 
-To detach the red button, remove the top part as a whole; it is held in place by three or five screws through the ceiling of the menu area. You can then remove the lever that turns the menu page to make room for using a screw driver to press the latches and pull the button out. Inside are two springs, which are big enough to fit a LED in their center. Don't forget to insulate the LED's legs.
+To detach the red button, remove the top chrome part as a whole:
+
+![Top](img/hw_top.jpg)
+
+It is held in place by three or five screws through the ceiling of the menu area. You can then remove the lever that turns the menu page to make room for using a screw driver to press the latches and pull the button out. Inside are two springs, which are big enough to fit a LED in their center. Don't forget to insulate the LED's legs.
 
 ### Illumination
 
