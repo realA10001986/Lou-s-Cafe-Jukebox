@@ -638,10 +638,10 @@ If both this and the option *__HA controls Fake-Power at startup__* are checked,
 In "Remote Mode", the Jukebox can control an external media player by sending MQTT commands to pre-configured topics, and it expects feedback and status information on a backchannel.
 
 The Jukebox knows two alternative addressing schemes for tracks:
-- Jukebox numbering: Consists of a letter and a number, separated by space, underscore or dash(minus).
+- Jukebox numbering: Consists of a letter and a number, separated by space, underscore or dash(minus). The option _Jukebox number includes letters I and O_ determines whether the remote player includes those letter or those are skipped.
 - Track number: Is an actual number.
 
-If track numbers are used, the conversion formula between letter/number track selection and the actual track number is **(letter * 10) + number**, where letter is A=0 - K=9, and number is 1=0 through 10=9.
+If track numbers are used, the conversion formula between letter/number track selection and the actual track number is **(letter * 10) + number**, where letter is A=0 and counted up to 9, and number is 1=0 through 10=9.
 
 ##### &#9193; Remote Player's commands
 
@@ -651,7 +651,7 @@ For the 'goto' command, topic and/or message can contain placeholders which will
 - {N} is a track number (without leading zeros)
 - {NNN} is a three digit track number (which will be between 0 and 99 only, but padded with leading zeros)
 - {NNNN} is a four digit track number (which will be between 0 and 99 only, but padded with leading zeros)
-- {JL} is the jukebox letter (A-K, "I" is skipped unless the option _Jukebox number includes letters I and O_ is checked)
+- {JL} is the jukebox letter
 - {JN} is the jukebox number (1-10)
 - {JNN} is the jukebox number with leading zero (00-10)
 
