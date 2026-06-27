@@ -324,8 +324,7 @@ You can use BTTF-Network and MQTT at the [same time](#receive-commands-from-time
 
 The Jukebox supports MQTT protocol versions 3.1.1 and 5.0 for the following features:
 - The Jukebox can remote control music players,
-- The Jukebox can be remote controlled,
-- the Jukebox can receive some data from the TCD (time-travel, alarm, night mode)
+- The Jukebox can be remote controlled.
 
 ### Remote Mode: Remote control third party MQTT-enabled music player
 
@@ -351,12 +350,6 @@ The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd
 - POWER_CONTROL_OFF: Release Fake-Power control
 - POWER_ON, POWER_OFF: Switch Fake-Power on or off, respectively.
 - NIGHTMODE_ON, NIGHTMODE_OFF: Switches night mode on/off. These commands are only executed if no TCD is connected through BTTFN, or the option _Follow TCD night-mode_ is unchecked in the Config Portal.
-
-### Receive commands from Time Circuits Display
-
-If both TCD and Jukebox are connected to the same broker, and the option **_Publish time travel and alarm events_** is checked on the TCD's side, the Jukebox will receive information on time travel and alarm and play their sequences in sync with the TCD. Unlike BTTFN, however, no other communication takes place.
-
-MQTT and BTTFN can co-exist. However, the TCD only sends out time travel and alarm notifications through either MQTT or BTTFN, never both. If you have other MQTT-aware devices listening to the TCD's public topic (bttf/tcd/pub) in order to react to time travel or alarm messages, use MQTT (ie check **_Publish time travel and alarm events_**). If only BTTFN-aware devices are to be used, uncheck this option to use BTTFN as it has less latency.
 
 ### Setup
 
