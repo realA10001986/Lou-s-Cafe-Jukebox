@@ -608,7 +608,7 @@ The backchannel carries feedback and status information on the Music Player whic
 
 This option should be left unchecked if you do not intend to remote control your Jukebox through HA/MQTT. 
 
-Backchannel data is sent to **bttf/_hostname_/mpstatus** on every change. It can also be triggered at any point by sending __MP_REQSTATUS__ to **bttf/_hostname_/cmd**. The _hostname_ is configured on the WiFi Settings page, and defaults to **jb**.
+Backchannel data is sent to **bttf/_hostname_/mpstatus** on every change. It can also be triggered at any point by sending __MP_REQSTATUS__ to **bttf/_hostname_/cmd**. The _hostname_ is configured on the WiFi Settings page, and defaults to **jb**. _If you have more than one Jukebox, you must give them unique hostnames._
 
 The data published on the backchannel is a JSON object, containing the following keys:
 - __S__: State. _Value_ can be "P" for playing, "I" for idle, and "O" for off/busy. In 'off' state, the Jukebox does not take commands.
@@ -680,7 +680,7 @@ For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the va
 - Shuffle off: **MP_SHUFFLE_OFF**
 
 For a second, identical Jukebox, the values must be:
-- Topics all set to **bttf/_XX_/cmd** (where XX is the hostname of the remote controlled Jukebox, by default **jb**)
+- Topics all set to **bttf/_XX_/cmd** (where XX is the hostname of the remote controlled Jukebox)
 - Play: **PLAY**
 - Stop: **STOP**
 - Next: **NEXT**
