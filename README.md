@@ -655,22 +655,22 @@ For the 'goto' command, topic and/or message can contain placeholders which will
 - {JN} is the jukebox number (1-10)
 - {JNN} is the jukebox number with leading zero (00-10)
 
-Examples: 
-If your player expects a JSON object and uses track numbers: **{"goto":{N}}**
-If your player expects a JSON object and uses Jukebox numbering: **{"goto":{JL}-{JN}}**
-If your player expects a plain string and uses Jukebox numbering: **GOTO_{JL}_{JN}**
-For controlling a second, identical Jukebox: **GOTO_{JL}_{JN}**
-For other CircuitSetup/A10001986 props: **INJECT_888{NNN}**
+Examples: </ br>
+If your player expects a JSON object and uses track numbers: **{"goto":{N}}** </ br>
+If your player expects a JSON object and uses Jukebox numbering: **{"goto":{JL}-{JN}}** </ br>
+If your player expects a plain string and uses Jukebox numbering: **GOTO_{JL}_{JN}** </ br>
+For controlling a second, identical Jukebox: **GOTO_{JL}_{JN}**</ br>
+For other CircuitSetup/A10001986 props: **INJECT_888{NNN}**</ br>
 
 If the _topic_ for 'volume down' is not empty, it is assumed that 'volume up' and 'volume down' are in fact commands to increase/decrease the volume. If 'volume down' is empty, it is assumed that the command in 'volume up' is in fact 'volume set'. In that case, topic and/or message can contain placeholders which will be replaced accordingly:
 - {P} for volume percentage (0 - 100)
 - {F} for volume fraction (0.0 - 1.0)
 
-Examples: 
-JSON, volume as fraction: **{"volume":{F})**
-Plain string, volume as percentage: **VOLUME_{P}**
-For controlling a second, identical Jukebox: **VOLUME_SET_{P}**
-For CircuitSetup/A10001986 props: **VOLUME_SET_{P}**
+Examples:</ br>
+JSON, volume as fraction: **{"volume":{F})** </ br>
+Plain string, volume as percentage: **VOLUME_{P}** </ br>
+For controlling a second, identical Jukebox: **VOLUME_SET_{P}** </ br>
+For CircuitSetup/A10001986 props: **VOLUME_SET_{P}** </ br>
 
 For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the values must be:
 - Topics all set to **bttf/_XX_/cmd** (where XX is either **tcd**, **fc**, **dg** or **vsr**)
@@ -678,6 +678,7 @@ For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the va
 - Stop: **MP_STOP**
 - Next: **MP_NEXT**
 - Prev: **MP_PREV**
+- Goto: **INJECT_888{NNN}**
 - Volume up / down: **VOLUME_SET_{P}** / empty
 - Shuffle on: **MP_SHUFFLE_ON**
 - Shuffle off: **MP_SHUFFLE_OFF**
@@ -688,6 +689,7 @@ For a second, identical Jukebox, the values must be:
 - Stop: **STOP**
 - Next: **NEXT**
 - Prev: **PREV**
+- Goto: **GOTO_{JL}_{JN}**
 - Volume up / down: **VOLUME_SET_{P}** / empty
 - Shuffle on: **SHUFFLE_ON**
 - Shuffle off: **SHUFFLE_OFF**
