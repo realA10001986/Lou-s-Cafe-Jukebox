@@ -183,7 +183,7 @@ Due to memory and CPU speed limitations, the streaming feature is, unfortunately
 - only http (not https) is supported; however, many streams broadcast on both, so try http even if the links says https.
 - a _good_ WiFi and internet connection is required due to a small buffer.
 
-The stream URLs are configured in the Config Portal under [Streaming Settings](#streaming-settings. 
+The stream URLs are configured in the Config Portal under [Streaming Settings](#streaming-settings). 
 
 Streams are selected like tracks in Music Player mode.
 
