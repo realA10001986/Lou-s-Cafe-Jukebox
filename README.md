@@ -322,9 +322,9 @@ You can use BTTF-Network and MQTT at the [same time](#receive-commands-from-time
 
 ## Home Assistant / MQTT
 
-The Jukebox supports MQTT protocol versions 3.1.1 and 5.0 for the following features:
-- The Jukebox can remote control music players,
-- The Jukebox can be remote controlled.
+The Jukebox supports MQTT protocol versions 3.1.1 and 5.0. Through MQTT,
+- the Jukebox can remote control music players,
+- the Jukebox can be remote controlled.
 
 ### Remote Mode: Remote control third party MQTT-enabled music player
 
