@@ -345,9 +345,9 @@ The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd
 - PREV: Jump to previous track/stream, or send a "previous" command to the remote controlled music player
 - SHUFFLE_ON: Enables shuffle mode for Music Player or the remote controlled music player
 - SHUFFLE_OFF: Disables shuffle mode for Music Player or the remote controlled music player
-- FOLDER_X: Set folder for Music Player (X=A-K [I is skipped] or 0-9)
-- GOTO_X_Y: Goto track/stream X-Y (X=A-K, Y=1-10), or send "goto" command to remote controlled music player
-- VOLUME_SET_X: Set audio volume to X% (0-100).
+- FOLDER_*X*: Set folder for Music Player (X=A-K [I is skipped] or 0-9)
+- GOTO_*X*_*Y*: Goto track/stream X-Y (X=A-K, Y=1-10; for example GOTO_A-10), or send "goto" command to remote controlled music player
+- VOLUME_SET_*X*: Set audio volume to X% (0-100).
 - VOLUME_UP, VOLUME:DOWN: Increase/decrease audio volume a notch.
 - POWER_CONTROL_ON: Take over Fake-Power control; POWER_xx commands now control Fake-Power.
 - POWER_CONTROL_OFF: Release Fake-Power control
