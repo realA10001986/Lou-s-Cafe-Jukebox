@@ -283,8 +283,8 @@ Numbers are the code to be entered on the TCD keypad if a TCD is connected via [
      <td>5300-5320</td>
      </tr>
     <tr>
-     <td align="left">Select music folder for <a href="#the-music-player">Music Player</a> (0-9)</td>
-     <td>5050-5059</td>
+     <td align="left">Select music folder for Music Player (0-19)</td>
+     <td>5050-5069</td>
     </tr>
     <tr>
      <td align="left">Shuffle off (for Music Player and Remote mode)</td>
@@ -295,11 +295,11 @@ Numbers are the code to be entered on the TCD keypad if a TCD is connected via [
      <td>5555</td>
     </tr> 
     <tr>
-     <td align="left">Go to track/stream A 1</td>
+     <td align="left">Go to track/stream A-1</td>
      <td>5888</td>
     </tr>
     <tr>
-     <td align="left">Go to track/stream x y (x=01-10 equivalent to letter; y=01-10)</td>
+     <td align="left">Go to track/stream x-y (x=01-10 where 01=A; y=01-10)</td>
      <td>588xxyy</td>
     </tr>
     <tr>
