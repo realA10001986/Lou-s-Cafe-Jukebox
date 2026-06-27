@@ -339,13 +339,13 @@ The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd
 - MODE_MP: Switch to Music Player mode
 - MODE_STREAM: Switch to streaming mode
 - MODE_REMOTE; Switch to Remote Mode
-- PLAY: Start the [Music Player](#the-music-player) or streaming, or send a "play" command to the remote controlled music player
-- STOP: Stop the [Music Player](#the-music-player) or streaming, or send a "stop" command to the remote controlled music player
+- PLAY: Starts the Music Player or streaming, or send a "play" command to the remote controlled music player
+- STOP: Stop the Music Player or streaming, or send a "stop" command to the remote controlled music player
 - NEXT: Jump to next track/stream, or send a "next" command to the remote controlled music player
 - PREV: Jump to previous track/stream, or send a "previous" command to the remote controlled music player
-- SHUFFLE_ON: Enables shuffle mode for [Music Player](#the-music-player) or the remote controlled music player
-- SHUFFLE_OFF: Disables shuffle mode for [Music Player](#the-music-player) or the remote controlled music player
-- FOLDER_X: Set folder for [Music Player](#the-music-player) (X=A-K [I is skipped] or 0-9)
+- SHUFFLE_ON: Enables shuffle mode for Music Player or the remote controlled music player
+- SHUFFLE_OFF: Disables shuffle mode for Music Player or the remote controlled music player
+- FOLDER_X: Set folder for Music Player (X=A-K [I is skipped] or 0-9)
 - GOTO_X_Y: Goto track/stream X-Y (X=A-K, Y=1-10), or send "goto" command to remote controlled music player
 - VOLUME_SET_X: Set audio volume to X% (0-100).
 - VOLUME_UP, VOLUME:DOWN: Increase/decrease audio volume a notch.
