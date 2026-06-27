@@ -183,7 +183,7 @@ Due to memory and CPU speed limitations, the streaming feature is, unfortunately
 - only http (not https) is supported; however, many streams broadcast on both, so try http even if the links says https.
 - a _good_ WiFi and internet connection is required due to a small buffer.
 
-The stream URLs are configured on the Config Panel. 
+The stream URLs are configured in the Config Portal under [Streaming Settings](#streaming-settings. 
 
 Streams are selected like tracks in Music Player mode.
 
@@ -191,7 +191,7 @@ Streams are selected like tracks in Music Player mode.
 
 In Remote Mode, the Jukebox can control a remote HomeAssistant/MQTT-enabled music player.
 
-The MQTT topics and messages for control are configured in the [Config Portal](#settings-for-remote-mode).  
+The MQTT topics and messages for control are configured in the Config Portal under [HA/MQTT Settings](#settings-for-remote-mode).  
 
 If the remote player supports a somewhat complete [backchannel](#-remote-player-backchannel), track selection works just like in Music Player mode: Jog dials 1 and 2 select letter and number, pressing the button selects the chosen track and starts play-back. If there is no compatible backchannel, only "play", "stop", "next" and "prev" are supported through the jog dials.
 
@@ -215,7 +215,7 @@ Your replacements need to be put in the root (top-most) directory of the SD card
 The following sounds are time-sync'd to display action. If you decide to substitute these with your own, be prepared to lose synchronicity:
 - "startup.mp3". Played when the Jukebox is connected to power and finished booting
 
-#### Installing Replacement Audio Files
+### Installing Replacement Audio Files
 
 Replacements can either be uploaded through the Config Portal or copied to the SD card using a computer.
 
@@ -258,8 +258,6 @@ Afterwards, the Jukebox and the TCD can communicate wirelessly and
 You can use BTTF-Network and MQTT at the [same time](#receive-commands-from-time-circuits-display).
 
 #### Remote Control Reference
-
-Numbers are the code to be entered on the TCD keypad if a TCD is connected via [BTTF-Network](#bttf-network-bttfn).
 
 <table id='commandref'>
     <tr>
@@ -331,7 +329,7 @@ The Jukebox supports MQTT protocol versions 3.1.1 and 5.0 for the following feat
 
 ### Remote Mode: Remote control third party MQTT-enabled music player
 
-This is explained in detail [here](#settings-for-remote-mode).
+This is explained [here](#settings-for-remote-mode).
 
 ### Control the Jukebox via MQTT
 
@@ -339,13 +337,13 @@ The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd
 - MODE_MP: Switch to Music Player mode
 - MODE_STREAM: Switch to streaming mode
 - MODE_REMOTE; Switch to Remote Mode
-- PLAY: Starts the Music Player or streaming, or send a "play" command to the remote controlled music player
+- PLAY: Start the Music Player or streaming, or send a "play" command to the remote controlled music player
 - STOP: Stop the Music Player or streaming, or send a "stop" command to the remote controlled music player
 - NEXT: Jump to next track/stream, or send a "next" command to the remote controlled music player
 - PREV: Jump to previous track/stream, or send a "previous" command to the remote controlled music player
 - SHUFFLE_ON: Enables shuffle mode for Music Player or the remote controlled music player
 - SHUFFLE_OFF: Disables shuffle mode for Music Player or the remote controlled music player
-- FOLDER_*X*: Set folder for Music Player (X=A-K [I is skipped] or 0-9)
+- FOLDER_*X*: Set folder for Music Player (X=A-K [I is skipped] or 0-9; for example FOLDER_F or FOLDER_7)
 - GOTO_*X*-*Y*: Goto track/stream X-Y (X=A-K, Y=1-10; for example GOTO_A-10), or send "goto" command to remote controlled music player
 - VOLUME_SET_*X*: Set audio volume to X% (0-100).
 - VOLUME_UP, VOLUME:DOWN: Increase/decrease audio volume a notch.
@@ -529,6 +527,10 @@ If this option is checked, the Jukebox will, in Music Player mode, play typical 
 
 If a TCD is connected via BTTFN or MQTT, the Jukebox visually signals when the TCD's alarm sounds. If you want the Jukebox to play an alarm sound, check this option. Note that the alarm sound is only played if no other sound is played back at the moment of the alarm.
 
+##### &#9193; Turn on blue light in night mode
+
+If this option is checked, the Jukebox will will turn on the blue light in Night mode.
+
 #### <ins>Settings for BTTFN communication</ins>
 
 ##### &#9193; Hostname or IP address of TCD
@@ -538,10 +540,6 @@ If you want to have your Jukebox to communicate with a Time Circuits Display wir
 ##### &#9193; Follow TCD night-mode
 
 If this option is checked and your TCD goes into night mode, the Jukebox will turn off it's menu illumination and reduce audio volume.
-
-##### &#9193; Turn on blue light in night mode
-
-If this option is checked and your TCD goes into night mode, the Jukebox will will turn on the blue light.
 
 ##### &#9193; Ignore time travels
 
