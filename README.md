@@ -544,7 +544,7 @@ If this option is checked, the Jukebox will ignore time travels on the TCD. If u
 
 ##### &#9193; Save secondary settings on SD
 
-If this is checked, secondary settings (volume, ...) are stored on the SD card (if one is present). This helps to minimize write operations to the internal flash memory and to prolong the lifetime of your Jukebox. See [Flash Wear](#flash-wear).
+If this is checked, secondary settings (eg. volume) are stored on the SD card (if one is present). This helps to minimize write operations to the internal flash memory and to prolong the lifetime of your Jukebox. See [Flash Wear](#flash-wear).
 
 Apart from Flash Wear, there is another reason for using an SD card for settings: Writing data to internal flash memory can cause delays of up to 1.5 seconds, which interrupt sound playback and have other undesired effects. The Jukebox needs to save data from time to time, so for a smooth experience without unexpected and unwanted delays, please use an SD card and check this option.
 
