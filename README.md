@@ -152,6 +152,8 @@ Bottom knob ("Jog dial 2"):
   - Pressing the knob again selects the currently lit folder and finalizes folder selection. 
 - Holding the knob down for 5 seconds deletes the static IP and WiFi AP password and, in case either was set, reboots; the top red light starts blinking after 2 seconds to warn
 
+[Here](CheatSheet.pdf) is a cheat sheet for printing or screen-use.
+
 ## Mode 1: Music Player
 
 The Music Player plays mp3 files located on the SD card. *The maximum bitrate is 128kpbs.* An excellent utility to re-encode your MP3 files in batches is [Adapter](https://macroplant.com/adapter/audio-converter), available for Mac and Windows.
