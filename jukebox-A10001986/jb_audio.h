@@ -1,0 +1,130 @@
+/*
+ * -------------------------------------------------------------------
+ * A10001986 Crosley CR-9 Jukebox
+ * (C) 2026 Thomas Winischhofer (A10001986)
+ * https://github.com/realA10001986/Jukebox
+ * https://jukebox.out-a-ti.me
+ *
+ * Sound handling
+ *
+ * -------------------------------------------------------------------
+ * License: Modified MIT NON-AI
+ * 
+ * Permission is hereby granted, free of charge, to any person 
+ * obtaining a copy of this software and associated documentation 
+ * files (the "Software"), to deal in the Software without restriction, 
+ * including without limitation the rights to use, copy, modify, 
+ * merge, publish, distribute, sublicense, and/or sell copies of the 
+ * Software, and to permit persons to whom the Software is furnished to 
+ * do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be 
+ * included in all copies or substantial portions of the Software.
+ * 
+ * Links inside the Software pointing to the original source must not 
+ * be changed or removed.
+ *
+ * In addition, the following restrictions apply:
+ * 
+ * 1. The Software and any modifications made to it may not be used 
+ * for the purpose of training or improving machine learning algorithms, 
+ * including but not limited to artificial intelligence, natural 
+ * language processing, or data mining. This condition applies to any 
+ * derivatives, modifications, or updates based on the Software code. 
+ * Any usage of the Software in an AI-training dataset is considered a 
+ * breach of this License.
+ *
+ * 2. The Software may not be included in any dataset used for 
+ * training or improving machine learning algorithms, including but 
+ * not limited to artificial intelligence, natural language processing, 
+ * or data mining.
+ *
+ * 3. Any person or organization found to be in violation of these 
+ * restrictions will be subject to legal action and may be held liable 
+ * for any damages resulting from such use.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+#ifndef _JB_AUDIO_H
+#define _JB_AUDIO_H
+
+#define NUM_MUSIC_FOLDERS 20
+
+#define DEFAULT_VOLUME 7
+#define VOL_LEVELS 21
+
+#define PA_CHECKNM 0x000001
+#define PA_INTRMUS 0x000002
+#define PA_ALLOWSD 0x000004
+#define PA_DYNVOL  0x000008
+#define PA_LOOP    0x000010
+#define PA_ISMUSIC 0x000040
+#define PA_VOLCHG  0x000080
+#define PA_STREAM  0x100000
+// upper 8 bits all taken for key ID
+#define PA_KEYMASK 0x01ff00
+#define PA_MASK    (PA_CHECKNM|PA_INTRMUS|PA_ALLOWSD|PA_DYNVOL|PA_LOOP)
+
+void    audio_setup();
+void    audio_loop();
+
+void    append_file(const char *audio_file, uint32_t flags, float volumeFactor = 1.0f);
+
+void    play_file(const char *audio_file, uint32_t flags, float volumeFactor = 1.0f);
+int     play_stream(const char *url, uint32_t flags, float volumeFactor);
+
+bool    play_key(int k, bool stopOnly = false);
+
+bool         check_file_SD(const char *audio_file);
+unsigned int check_file_len_SD(const char *audio_file, bool& file_exists, uint8_t *tbuf = NULL, uint32_t tsz = 0);
+
+bool    checkAudioDone();
+bool    checkMP3Running();
+
+void    stopAudio();
+void    stop_key();
+
+bool    append_pending();
+
+bool    st_active();
+bool    st_stop(bool force = false);
+
+void     mp_init(bool isSetup = false);
+int      get_song_idx_0();
+void     mp_play(bool forcePlay = true);
+bool     mp_stop(bool force = false, bool forceStatus = false);
+void     mp_next(bool forcePlay = false);
+void     mp_prev(bool forcePlay = false);
+int      mp_gotonum(int num, bool force = false);
+void     mp_makeShuffle(bool enable);
+int      mp_checkForFolder(int num);
+uint8_t* m(uint8_t *a, uint32_t s, int e);
+int      mp_get_currently_playing();
+int      mp_get_currently_playing_idx();
+void     mp_sendStatus(int force = 0);
+
+typedef struct {
+    int state;
+    int curVolume;
+    int curTrack;
+    int maxMusic;
+    int mpShuffle;
+} Aud_State;
+extern Aud_State aud_state;
+
+extern bool audioInitDone;
+
+extern bool mpActive;
+
+extern int  mfstatus[];
+
+extern bool playJB;
+
+#endif
