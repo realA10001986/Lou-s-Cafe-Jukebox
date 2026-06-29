@@ -526,7 +526,7 @@ If a TCD is connected via BTTFN or MQTT, the Jukebox visually signals when the T
 
 ##### &#9193; Turn on blue light in night mode
 
-If this option is checked, the Jukebox will will turn on the blue light in Night mode.
+If this option is checked, the Jukebox will will turn on the blue light in Night mode. Otherwise it will remain dark.
 
 #### <ins>Settings for BTTFN communication</ins>
 
@@ -540,7 +540,7 @@ If this option is checked and your TCD goes into night mode, the Jukebox will tu
 
 ##### &#9193; Ignore time travels
 
-If this option is checked, the Jukebox will ignore time travels on the TCD. If unchecked, the Jukebox will take part by TODO
+If this option is checked, the Jukebox will ignore time travels on the TCD. If unchecked, the Jukebox will "turn blue" during a temporal displacement.
 
 #### <ins>Other settings</ins>
 
@@ -572,7 +572,7 @@ Note that the MQTT options __HA controls Fake-Power at startup__ in combination 
 On this page the internet stream URLs are configured. 
 
 Due to memory and CPU speed limitations
-- only MPEG-1, MPEG-2, MPEG 2.5 (Layer I, Layer II, Layer III a.k.a. MP3) at <= 128kbps are supported, 
+- only MPEG-1, MPEG-2, MPEG 2.5 (Layer I, Layer II, Layer III a.k.a. MP3) at up to 128kbps are supported, 
 - only http (not https) is supported; however, many streams broadcast on both, so try http even if the published links says https.
 
 ---
@@ -704,7 +704,7 @@ The entered _values_ for State and Shuffle mode are interpreted as strings. Leav
 
 For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the values must be:
 - Topic: **bttf/_XX_/mpstatus** (where XX is either **tcd**, **fc**, **dg** or **vsr**)
-- State key **S**, value 'playing' **P**, value 'off' **O** (letter O, not zero)
+- State key **S**, value 'playing' **P**, value 'off' **O** (letter O)
 - Current track: **C**
 - First track: **F**
 - Last track: **L**
@@ -713,9 +713,9 @@ For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the va
 
 For a second, identical Jukebox, the values must be:
 - Topic: **bttf/_XX_/mpstatus** (where XX is the hostname of the remote controlled Jukebox)
-- State key **S**, value 'playing' **P**, value 'off' **O** (letter O, not zero)
+- State key **S**, value 'playing' **P**, value 'off' **O** (letter O)
 - Current track: **C**
-- First track: unused
+- First track: unused, can be left empty
 - Last track: **L**
 - Volume: **V**
 - Shuffle: key **SH**, value **1**.
