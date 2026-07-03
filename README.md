@@ -257,8 +257,6 @@ Afterwards, the Jukebox and the TCD can communicate wirelessly and
 - the devices play time travel sequences in sync,
 - the Jukebox plays an alarm-sequence when the TCD's alarm occurs,
 
-You can use BTTF-Network and MQTT at the [same time](#receive-commands-from-time-circuits-display).
-
 #### Remote Control Reference
 
 <table id='commandref'>
