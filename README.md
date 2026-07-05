@@ -201,7 +201,7 @@ If the remote player supports a somewhat complete [backchannel](#-remote-player-
 
 >Preface note on SD cards: For unknown reasons, some SD cards simply do not work with this device. For instance, I had no luck with Sandisk Ultra 32GB and  "Intenso" cards. If your SD card is not recognized, check if it is formatted in FAT32 format (not exFAT!). Also, the size must not exceed 32GB (as larger cards cannot be formatted with FAT32). Transcend, Sandisk Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards work fine in my experience.
 
-Note that the SD card must be inserted before powering up the device. It is not recognized if inserted while the Jukebox is running. Furthermore, do not remove the SD card while the device is powered.
+The SD card must be inserted before powering up the device. It is not recognized if inserted while the Jukebox is running. Furthermore, do not remove the SD card while the device is powered.
 
 Since the SD card on the control board is inaccessible after assembling the Jukebox, installing a microSD extension (like [this one](https://www.amazon.com/Memory-Micro-SD-Female-Extension-Extender/dp/B09MS85FQ3/)) is recommended.
 
@@ -227,7 +227,9 @@ To delete a file from the SD card, upload a file whose name is prefixed with "de
 
 For technical reasons, the Jukebox must reboot after mp3 files are uploaded in this way.
 
-Please remember that the maximum bitrate for mp3 files is 128kbps. Also note that the uploaded file is stored to the root folder of the SD card, so this way of uploading cannot be used to upload music for the Music Player. 
+The maximum bitrate for mp3 files is 128kbps. 
+
+The uploaded files are stored to the root folder of the SD card, so this way of uploading cannot be used to upload music for the Music Player. 
 
 ## Connecting a Time Circuits Display
 
@@ -398,7 +400,7 @@ If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">
 
 The firmware comes with a sound-pack which needs to be installed separately. The sound-pack is not updated as often as the firmware itself. There will be a message in the Config Portal and a respective [signal](#appendix-b-led-signals) at startup when/if the sound-pack needs to be updated.
 
-_Note that installing the sound-pack requires an [SD card](#sd-card)._
+_Installing the sound-pack requires an [SD card](#sd-card)._
 
 The first step is to extract "sound-pack-jbXX.zip" (which is included in every [Release package](https://github.com/realA10001986/Jukebox/releases)). It contains one file, named "JBA.bin".
 
@@ -441,7 +443,7 @@ This leads to the firmware update and audio upload page.
 
 To upload a new firmware, such as published in the [Release packages](https://github.com/realA10001986/Jukebox/releases), select the "**jukebox-A10001986-Vx.xxx.bin**" file as contained in the Release package in the _top_ file selector and click *Update*.
 
-You can also install the Jukebox's sound-pack on this page; download the sound-pack (which is included in every [Release package](https://github.com/realA10001986/Jukebox/releases)), extract it and select the resulting JBA.bin file in the _bottom_ file selector. Finally, click *Upload*. Note that an SD card is required for this operation.
+You can also install the Jukebox's sound-pack on this page; download the sound-pack (which is included in every [Release package](https://github.com/realA10001986/Jukebox/releases)), extract it and select the resulting JBA.bin file in the _bottom_ file selector. Finally, click *Upload*. An SD card is required for this operation.
 
 See also [here](#firmware-installation--firmware-update).
 
@@ -561,7 +563,7 @@ This procedure ensures that all your settings are copied from the old to the new
 
 If this option is checked, the Jukebox waits for fake-power on upon startup. If this option is unchecked, the Jukebox fake-powers on automatically.
 
-Note that the MQTT options __HA controls Fake-Power at startup__ in combination with __Wait for POWER_ON at startup__ can overrule this setting.
+The MQTT options __HA controls Fake-Power at startup__ in combination with __Wait for POWER_ON at startup__ can overrule this setting.
 
 ---
 
@@ -583,7 +585,7 @@ If checked, the Jukebox will connect to the broker (if configured) and send and 
 
 ##### &#9193; Broker IP[:port] or domain[:port]
 
-The broker server address. Can be a domain (eg. "myhome.me") or an IP address (eg "192.168.1.5"). The default port is 1883. If a different port is to be used, it can be specified after the domain/IP and a colon ":", for example: "192.168.1.5:1884". Specifying the IP address is preferred over a domain since the DNS call adds to the network overhead. Note that ".local" (MDNS) domains are not supported.
+The broker server address. Can be a domain (eg. "myhome.me") or an IP address (eg "192.168.1.5"). The default port is 1883. If a different port is to be used, it can be specified after the domain/IP and a colon ":", for example: "192.168.1.5:1884". Specifying the IP address is preferred over a domain since the DNS call adds to the network overhead. ".local" (MDNS) domains are not supported.
 
 ##### &#9193; Protocol version
 
