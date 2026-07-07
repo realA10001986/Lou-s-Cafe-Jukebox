@@ -121,7 +121,7 @@ Buttons can be _pressed_ or _held_. _Pressing_ means pressing and releasing the 
 
 The top-most knob ("Power button") is used for fake-power, mode switching and volume: 
 - Pressing the power button while the unit is fake-off switches fake-power on.
-- Pressing the power button while the unit is fake-on switches between Music Player, streaming and Remote mode. The first time pressed within 5 seconds announces the current mode, and following press advances the mode of operation.
+- Pressing the power button while the unit is fake-on switches between Music Player, streaming and Remote mode. The first press within 5 seconds announces the current mode, and following press advances the mode of operation.
 - Holding it for 2 seconds while fake power is on fake-powers it off.
 - Turning the knob adjusts the volume level.
 
