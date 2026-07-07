@@ -257,7 +257,7 @@ Afterwards, the Jukebox and the TCD can communicate wirelessly and
 - the Jukebox can be remote controlled through the TCD's keypad (command codes 5xxx),
 - the Jukebox queries the TCD for night mode, in order to react accordingly if so configured,
 - the devices play time travel sequences in sync,
-- the Jukebox plays an alarm-sequence when the TCD's alarm occurs,
+- the Jukebox plays an alarm-sequence when the TCD's alarm occurs.
 
 #### Remote Control Reference
 
