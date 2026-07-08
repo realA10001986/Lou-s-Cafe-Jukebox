@@ -391,7 +391,7 @@ If a previous version of the Jukebox firmware is installed on your device, you c
 
 <details>
 <summary>Installing on a fresh ESP32...</summary>
-If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions or - if you are a nerd and want to deal with source code, compilers'n'stuff - see <a href="https://github.com/realA10001986/Jukebox/blob/main/jukebox-A10001986/jukebox-A10001986.ino">jukebox-A10001986.ino</a> for detailed build and upload information.
+If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions or - if you are a nerd and want to deal with source code, compilers'n'stuff - see <a href="https://github.com/realA10001986/Jukebox/blob/master/jukebox-A10001986/jukebox-A10001986.ino">jukebox-A10001986.ino</a> for detailed build and upload information.
 </details>
 
 *After a firmware update, the red LED might blink for short while after reboot. Do NOT unplug the device during this time.*
