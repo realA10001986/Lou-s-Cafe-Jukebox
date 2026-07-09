@@ -61,7 +61,7 @@ It is ok to leave it in AP-mode, predominantly if used stand-alone. To keep oper
 
 In this case, you can connect your Jukebox to your home WiFi network. This allows for inter-prop-communication ([BTTFN](#bttf-network-bttfn)) and [HA/MQTT](#home-assistant--mqtt). If your home WiFi has internet access, streaming is possible.
 
-![STAmode-home](img/stamode-home.png)
+![STAmode-home](img/stamode-home-inet.png)
 
 Click on "WiFi Configuration" and either select a network from the top of the page or enter a WiFi network name (SSID), and enter your WiFi password. After saving the WiFi network settings, your Jukebox reboots and tries to connect to your selected WiFi network. 
 
