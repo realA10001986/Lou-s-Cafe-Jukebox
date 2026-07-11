@@ -24,7 +24,7 @@ Firmware features include
 - [Home Assistant](#home-assistant--mqtt) (MQTT) support. Used for remote-controlling the Jukebox, as well as a means of communication for the Jukebox to control third-party HA/MQTT-aware media players in Remote Mode.
 - built-in OTA installer for firmware updates
 
-For information on updating the firmware on your Jukebox, see [here](#firmware-installation--firmware-update).
+For information on installing or updating the firmware on your Jukebox, see [here](#firmware-installation--firmware-update).
 
 ## Initial Configuration
 
