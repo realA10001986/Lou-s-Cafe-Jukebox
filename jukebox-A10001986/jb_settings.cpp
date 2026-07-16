@@ -62,7 +62,7 @@
 #define ARDUINOJSON_ENABLE_STD_STRING 0
 #define ARDUINOJSON_ENABLE_NAN 0
 #include <ArduinoJson.h>  // https://github.com/bblanchon/ArduinoJson
-#include <SD.h>
+#include "src/SD/SD.h"
 #include <SPI.h>
 #include <FS.h>
 #define MYNVS LittleFS
@@ -459,17 +459,6 @@ static bool saveTerSettings(bool useCache)
     
     return saveConfigFile(terCfgName, (uint8_t *)&terSettings, sizeof(terSettings), 1);
 }
-
-#ifdef SETTINGS_TRANSITION
-static void removeOldFiles(const char *oldfn)
-{
-    if(haveSD) SD.remove(oldfn);
-    if(haveFS) MYNVS.remove(oldfn);
-    #ifdef JB_DBG_BOOT
-    Serial.printf("removeOldFiles: Removing %s\n", oldfn);
-    #endif
-}
-#endif
 
 /*
  * Helpers for JSON config files
@@ -920,7 +909,6 @@ void settings_setup()
     #endif
     bool writedefault = false;
     bool freshFS = false;
-    bool SDres = false;
     int alienVER = -1;
     int cfgReadCount = 0;
 
@@ -971,33 +959,20 @@ void settings_setup()
     }
     
     // Set up SD card
+    pinMode(SD_CS_PIN, OUTPUT);
+    digitalWrite(SD_CS_PIN, HIGH);
     SPI.begin(SPI_SCK_PIN, SPI_MISO_PIN, SPI_MOSI_PIN);
-
-    haveSD = false;
-
-    //uint32_t sdfreq = (settings.sdFreq[0] == '0') ? 16000000 : 4000000;
-    uint32_t sdfreq = 16000000;
-    #ifdef JB_DBG_BOOT
-    Serial.printf("%s: SD/SPI frequency %dMHz\n", funcName, sdfreq / 1000000);
-    #endif
+    delay(20);
 
     #ifdef JB_DBG_BOOT
     Serial.printf("%s: Mounting SD... ", funcName);
     #endif
 
-    if(!(SDres = SD.begin(SD_CS_PIN, SPI, sdfreq))) {
-        #ifdef JB_DBG_BOOT
-        Serial.printf("Retrying at 25Mhz... ");
-        #endif
-        SDres = SD.begin(SD_CS_PIN, SPI, 25000000);
+    if(!(haveSD = SD.begin(SD_CS_PIN, SPI, 16000000))) {
+        delay(20);
+        haveSD = SD.begin(SD_CS_PIN, SPI, 25000000);
     }
-
-    if(SDres) {
-
-        #ifdef JB_DBG_BOOT
-        Serial.println("ok");
-        #endif
-
+    if(haveSD) {
         uint8_t cardType = SD.cardType();
        
         #ifdef JB_DBG_BOOT
@@ -1006,7 +981,6 @@ void settings_setup()
         #endif
 
         haveSD = ((cardType != CARD_NONE) && (cardType != CARD_UNKNOWN));
-
     }
 
     if(haveSD) {
@@ -1034,7 +1008,9 @@ void settings_setup()
         }
 
     } else {
+        #ifdef JB_DBG_BOOT
         Serial.println("No SD card found");
+        #endif
     }
 
     // Check if (current) audio data is installed
@@ -1211,26 +1187,6 @@ void loadMusFoldNum()
         if(terSettings.musFolderNum < NUM_MUSIC_FOLDERS) {
             musFolderNum = terSettings.musFolderNum;
         }
-    } else {
-        #ifdef SETTINGS_TRANSITION
-        char temp[4];
-        musFolderNum = 0;
-        if(SD.exists(musCfgName)) {
-            File configFile = SD.open(musCfgName, "r");
-            if(configFile) {
-                DECLARE_S_JSON(512,json);
-                if(!readJSONCfgFile(json, configFile)) {
-                    if(!CopyCheckValidNumParm(json["folder"], NULL, temp, sizeof(temp), 0, NUM_MUSIC_FOLDERS - 1, 0)) {
-                        musFolderNum = atoi(temp);
-                    }
-                }
-                configFile.close();
-                saveMusFoldNum();
-            }
-        }
-        removeOldFiles(musCfgName);
-        #endif
-        
     }
 }
 

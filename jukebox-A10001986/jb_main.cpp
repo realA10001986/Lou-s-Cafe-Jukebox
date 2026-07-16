@@ -1944,7 +1944,8 @@ static int execute(bool injected)
                     }
                     break;
                 case 2:
-                    // Handled separately since we use 0-20, remote expects 0-100
+                    // Handled separately when from MQTT since we use 0-20, remote expects 0-100
+                    // Ignore when through TCD directly
                     break;
                 }
     

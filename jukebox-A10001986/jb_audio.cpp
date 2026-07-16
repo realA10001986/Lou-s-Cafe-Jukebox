@@ -59,7 +59,7 @@
 #endif
 
 #include <Arduino.h>
-#include <SD.h>
+#include "src/SD/SD.h"
 #include <FS.h>
 
 #include "AudioFileSourceLoop.h"
@@ -400,7 +400,7 @@ bool play_key(int k, bool stopOnly)
     
     keySnd[4] = '0' + k;
     
-    play_file(keySnd, pa_key|PA_INTRMUS|PA_ALLOWSD|PA_DYNVOL|PA_CHECKNM);
+    play_file(keySnd, pa_key|PA_ALLOWSD|PA_DYNVOL|PA_CHECKNM);
 
     return true;
 }

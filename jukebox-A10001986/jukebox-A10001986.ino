@@ -140,8 +140,12 @@
 
 /*  Changelog
  *  
- *  2026/xx/xx (A10001986)
- *  - Initial version
+ *  2026/07/16 (A10001986) [1.1]
+ *    - Bugfix: Fix SD initialization in ESP32-Arduino to conform to specs.
+ *      Sandisk Ultra 32GB cards (and possibly others that previously were
+ *      not usable) are now recognized.
+ *  2026/06/29 (A10001986) [1.0]
+ *    - Initial version
  *
  */
 
