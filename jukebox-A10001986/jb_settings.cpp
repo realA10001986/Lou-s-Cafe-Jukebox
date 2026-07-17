@@ -248,14 +248,14 @@ static bool readFile(File& myFile, uint8_t *buf, int len)
 static bool readFileU(File& myFile, uint8_t*& buf, int& len)
 {
     if(myFile) {
-        len = myFile.size();
-        buf = (uint8_t *)malloc(len+1);
-        if(buf) {
-            buf[len] = 0;
-            return readFile(myFile, buf, len);
-        } else {
-            myFile.close();
+        if((len = myFile.size())) {
+            buf = (uint8_t *)malloc(len+1);
+            if(buf) {
+                buf[len] = 0;
+                return readFile(myFile, buf, len);
+            }
         }
+        myFile.close();
     }
     return false;
 }

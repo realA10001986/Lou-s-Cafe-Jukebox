@@ -140,11 +140,14 @@
 
 /*  Changelog
  *  
- *  2026/07/16 (A10001986) [1.1]
+ *  2026/07/17 (A10001986) [1.02]
+ *    - Bugfix: Avoid crash on 0-length config files
+ *    - SD: More compatibility fixes
+ *  2026/07/16 (A10001986) [1.01]
  *    - Bugfix: Fix SD initialization in ESP32-Arduino to conform to specs.
  *      Sandisk Ultra 32GB cards (and possibly others that previously were
  *      not usable) are now recognized.
- *  2026/06/29 (A10001986) [1.0]
+ *  2026/06/29 (A10001986) [1.00]
  *    - Initial version
  *
  */
