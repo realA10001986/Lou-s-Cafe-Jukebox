@@ -30,7 +30,7 @@ For information on installing or updating the firmware on your Jukebox, see [her
 
 >The following instructions only need to be followed once, on fresh Jukeboxes. They do not need to be repeated after a firmware update.
 
-The first step is to establish access to the Jukebox's configuration web site ("Config Portal"):
+The first step is to establish access to the Jukebox's configuration website ("Config Portal"):
 
 - Power up your Jukebox and wait until the startup sequence has completed.
 - Connect your computer or handheld device to the WiFi network "JB-AP".
