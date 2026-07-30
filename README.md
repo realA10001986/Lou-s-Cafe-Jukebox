@@ -21,7 +21,7 @@ Firmware features include
 - Jog dials for track and stream selection, organized Jukebox-style (letter and number)
 - advanced network-accessible [Config Portal](#the-config-portal) for setup (http://jb.local)
 - [wireless communication](#bttf-network-bttfn) with [Time Circuits Display](https://circuitsetup.us/product/complete-time-circuits-display-kit/); used for remote control through TCD keypad
-- [Home Assistant](#home-assistant--mqtt) (MQTT) support. Used for remote-controlling the Jukebox, as well as a means of communication for the Jukebox to control third-party HA/MQTT-aware media players in Remote Mode.
+- [Home Assistant](#home-assistant--mqtt) (MQTT) support. Used for remote-controlling the Jukebox, as well as for the Jukebox to control third-party HA/MQTT-aware media players in Remote Mode.
 - built-in OTA installer for firmware updates
 
 For information on installing or updating the firmware on your Jukebox, see [here](#firmware-installation--firmware-update).
