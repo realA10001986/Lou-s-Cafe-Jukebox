@@ -32,7 +32,7 @@ For information on installing or updating the firmware on your Jukebox, see [her
 
 The first step is to establish access to the Jukebox's configuration website ("Config Portal"):
 
-- Power up your Jukebox and wait until the startup sequence has completed.
+- Power up your Jukebox and wait a few seconds.
 - Connect your computer or handheld device to the WiFi network "JB-AP".
 - Navigate your browser to http://jb.local or http://192.168.4.1 to enter the Config Portal.
 
