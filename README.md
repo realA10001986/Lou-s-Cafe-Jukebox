@@ -15,8 +15,8 @@ So, I decided to go with the Crosley CR-9 instead. Modification instructions are
 
 Firmware features include
 - Three modes of operation:
-  - Music Player to play the mp3 files from SD card; capacity 2000 tracks, organized in 20 folders for 100 tracks each
-  - basic audio streaming from public internet streams (ShoutCast ICY over HTTP; audio/mpeg only, maximum bitrate 128kbps; HTTPS not supported)
+  - Music Player for playing mp3 files stored on SD card; capacity 2000 tracks, organized in 20 folders, 100 tracks each
+  - basic audio streaming (ShoutCast ICY over HTTP; audio/mpeg only, maximum bitrate 128kbps; HTTPS not supported)
   - Remote Mode: The Jukebox can remote control other music players through HA/MQTT
 - Jog dials for track and stream selection, organized Jukebox-style (letter and number)
 - advanced network-accessible [Config Portal](#the-config-portal) for setup (http://jb.local)
@@ -68,7 +68,7 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
 <details>
 <summary>More...</summary>
 
->If there are several APs with identical SSID in your area, you can select a specific AP to use by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
+>If there are multiple APs with identical SSID in your area, you can select a specific AP to use by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
 
 >Your Jukebox requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, hold the bottom knob for 5 seconds while fake-power is off; static IP data will be deleted and the device will return to DHCP after rebooting.
 
