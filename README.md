@@ -207,7 +207,7 @@ Since the SD card on the control board is inaccessible after assembling the Juke
 
 ### Sound substitution
 
-The Jukebox's built-in sound effects can be substituted by your own sound files on a FAT32-formatted SD card. These files will be played back directly from the SD card during operation, so the SD card has to remain in the slot.
+The Jukebox's built-in sound effects can be substituted by your own sound files stored on the SD card. These files will be played back directly from the SD card during operation, so the SD card has to remain in the slot.
 
 Your replacements need to be put in the root (top-most) directory of the SD card, be in mp3 format (128kbps max) and named as follows:
 - "alarm.mp3". Played when the alarm sounds (triggered by a Time Circuits Display via BTTFN or MQTT);
@@ -219,7 +219,7 @@ The following sounds are time-sync'd to display action. If you decide to substit
 
 ### Installing Replacement Audio Files
 
-Replacements can either be uploaded through the Config Portal or copied to the SD card using a computer.
+Replacements can either be uploaded through the Config Portal or copied to the SD card’s root folder using a computer.
 
 Uploading through the Config Portal works exactly like [installing the sound-pack](#sound-pack-installation); on the main menu, click "Update & Upload". Afterwards choose one or more mp3 files to upload using the bottom file selector, and click "UPLOAD". The firmware will store the uploaded mp3 files on the SD card.
 
