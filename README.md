@@ -199,7 +199,7 @@ If the remote player supports a somewhat complete [backchannel](#-remote-player-
 
 ## SD Card
 
->Preface note on SD cards: Only SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra (as of Jukebox firmware version 1.1) and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
+>Only SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
 
 The SD card must be inserted before powering up the device. It is not recognized if inserted while the Jukebox is running. Furthermore, do not remove the SD card while the device is powered.
 
