@@ -68,7 +68,7 @@ Click on "WiFi Configuration" and either select a network from the top of the pa
 <details>
 <summary>More...</summary>
 
->If there are several APs with identical SSID nearby, you can select a specific AP by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
+>If there are several APs with identical SSID nearby, the Jukebox will connect to the first one found which might not be the nearest/strongest. It is therefore recommended to select a specific AP by its BSSID (AP's MAC address). You can either manually find out your AP's BSSID and enter it or have it filled out automatically: Click "Scan for networks", then "Show all". If you click on an AP, its BSSID will be copied into BSSID field in the form below. To see which AP is which, hover over the name to see its BSSID as a tooltip.
 
 >Your Jukebox requests an IP address via DHCP, unless you entered valid data in the fields for static IP addresses (IP, gateway, netmask, DNS). If the device is inaccessible as a result of incorrect static IPs, hold the bottom knob for 5 seconds while fake-power is off; static IP data will be deleted and the device will return to DHCP after rebooting.
 
@@ -109,7 +109,7 @@ It can be accessed as follows:
 
   >Accessing the Config Portal through this address requires the operating system of your handheld/computer to support Bonjour/mDNS: Windows 10 version TH2     (1511) [other sources say 1703] and later, Android 13 and later; MacOS and iOS since the dawn of time.
 
-  >If connecting to http://jb.local fails due to a name resolution error, you need to find out the JB's IP address: XXXX and listen, the IP address will be spoken out loud. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as read out loud by the Jukebox) in order to enter the Config Portal.</details>
+  >If connecting to http://jb.local fails due to a name resolution error, you need to find out the Jukebox' IP address: While fake power is off, press the middle button ("Jog dial 1") and listen, the IP address will be spoken out loud. Then, on your handheld or computer, navigate to http://a.b.c.d (a.b.c.d being the IP address as read out loud by the Jukebox) in order to enter the Config Portal.</details>
 
 A full reference of the Config Portal is [here](#appendix-a-the-config-portal).
 
