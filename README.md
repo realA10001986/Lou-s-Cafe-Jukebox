@@ -616,7 +616,7 @@ Example: ```{"S":"I","C":"D-8","V":"20","L":"K-10","SH":"0"}```
 
 ##### &#9193; HA controls Fake-Power at startup
 
-This option selects whether HA should be in control of Fake-Power at startup or not. If this is checked, the Jukebox assumes HA has control of Fake-Power, overruling the built-in Fake-Power button. If this is unchecked, Fake-Power control remains with the button, and HA can take over only after sending "POWER_CONTROL_ON".
+This option selects whether HA should be in control of Fake-Power at startup or not. If this is checked, the Jukebox assumes HA has control of Fake-Power, overruling the built-in Fake-Power button. If this is unchecked, Fake-Power control remains with the button, and HA can take over only after sending ```POWER_CONTROL_ON```.
 
 ##### &#9193; Wait for POWER_ON at startup
 
@@ -643,12 +643,12 @@ If track numbers are used, the conversion formula between letter/number track se
 Insert in those fields the MQTT topics and messages ("payloads") for the commands to be sent the the remote player. Messages can be empty, if the topic contains the complete command. You can fill in plain strings or, for the message, also JSON objects.
 
 For the 'goto' command, topic and/or message can contain placeholders which will be replaced accordingly:
-- {N} is a track number (without leading zeros)
-- {NNN} is a three digit track number (which will be between 0 and 99 only, but padded with leading zeros)
-- {NNNN} is a four digit track number (which will be between 0 and 99 only, but padded with leading zeros)
-- {JL} is the jukebox letter
-- {JN} is the jukebox number (1-10)
-- {JNN} is the jukebox number with leading zero (01-10)
+- ```{N}``` is a track number (without leading zeros)
+- ```{NNN}``` is a three digit track number (which will be between 0 and 99 only, but padded with leading zeros)
+- ```{NNNN}``` is a four digit track number (which will be between 0 and 99 only, but padded with leading zeros)
+- ```{JL}``` is the jukebox letter
+- ```{JN}``` is the jukebox number (1-10)
+- ```{JNN}``` is the jukebox number with leading zero (01-10)
 
 Examples: <br />
 If your player expects a JSON object and uses track numbers: ```{"goto":{N}}``` <br />
@@ -656,8 +656,8 @@ If your player expects a JSON object and uses Jukebox numbering: ```{"goto":"{JL
 If your player expects a plain string and uses Jukebox numbering: ```GOTO_{JL}_{JN}``` <br />
 
 If the _topic_ for 'volume down' is not empty, it is assumed that 'volume up' and 'volume down' are in fact commands to increase/decrease the volume. If 'volume down' is empty, it is assumed that the command in 'volume up' is in fact 'volume set'. In that case, topic and/or message can contain placeholders which will be replaced accordingly:
-- {P} for volume percentage (0 - 100)
-- {F} for volume fraction (0.0 - 1.0)
+- ```{P}``` for volume percentage (0 - 100)
+- ```{F}``` for volume fraction (0.0 - 1.0)
 
 Examples:<br />
 JSON, volume as fraction: ```{"volume":{F})``` <br />
@@ -689,7 +689,7 @@ For a second, identical Jukebox, the values must be:
 
 In this section, the format of the remote player's feedback can be configured. The feedback must come as a JSON object:
 
-For example: ```{"STATE":"PLAYING","VOLUME":"50"}** or **{"CURRENT":0,"FIRST":"0","LAST":"99"}```
+For example: ```{"STATE":"PLAYING","VOLUME":"50"}``` or ```{"CURRENT":0,"FIRST":"0","LAST":"99"}```
 
 The feedback data can contain the following fields:
 
@@ -704,7 +704,7 @@ The entered _values_ for State and Shuffle mode are interpreted as strings. Leav
 
 For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the values must be:
 - Topic: **bttf/_XX_/mpstatus** (where XX is either **tcd**, **fc**, **dg** or **vsr**)
-- State key **S**, value 'playing' **P**, value 'off' **O** (letter O)
+- State key ```S```, value 'playing' ```P```, value 'off' ```O``` (letter O)
 - Current track: **C**
 - First track: **F**
 - Last track: **L**
