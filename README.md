@@ -705,20 +705,20 @@ The entered _values_ for State and Shuffle mode are interpreted as strings. Leav
 For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the values must be:
 - Topic: **bttf/_XX_/mpstatus** (where XX is either **tcd**, **fc**, **dg** or **vsr**)
 - State key ```S```, value 'playing' ```P```, value 'off' ```O``` (letter O)
-- Current track: **C**
-- First track: **F**
-- Last track: **L**
-- Volume: **V**
-- Shuffle: key **SH**, value **1**.
+- Current track: ```C```
+- First track: ```F```
+- Last track: ```L```
+- Volume: ```V```
+- Shuffle: key ```SH```, value ```1```.
 
 For a second, identical Jukebox, the values must be:
 - Topic: **bttf/_XX_/mpstatus** (where XX is the hostname of the remote controlled Jukebox)
-- State key **S**, value 'playing' **P**, value 'off' **O** (letter O)
-- Current track: **C**
+- State key ```S```, value 'playing' ```P```, value 'off' ```O``` (letter O)
+- Current track: ```C```
 - First track: unused, can be left empty
-- Last track: **L**
-- Volume: **V**
-- Shuffle: key **SH**, value **1**.
+- Last track: ```L```
+- Volume: ```V```
+- Shuffle: key ```SH```, value ```1```.
 
 ## Appendix B: LED signals
 
