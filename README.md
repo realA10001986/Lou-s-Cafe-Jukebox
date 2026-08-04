@@ -660,7 +660,7 @@ If the _topic_ for 'volume down' is not empty, it is assumed that 'volume up' an
 - ```{F}``` for volume fraction (0.0 - 1.0)
 
 Examples:<br />
-JSON, volume as fraction: ```{"volume":{F})``` <br />
+JSON, volume as fraction: ```{"volume":{F}}``` <br />
 Plain string, volume as percentage: ```VOLUME_{P}``` <br />
 
 For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the values must be:
