@@ -339,7 +339,7 @@ This is explained [here](#settings-for-remote-mode).
 The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd, by default **bttf/jb/cmd**. Supported commands are
 - ```MODE_MP```: Switch to Music Player mode
 - ```MODE_STREAM```: Switch to streaming mode
-- ```MODE_REMOTE```; Switch to Remote Mode
+- ```MODE_REMOTE```: Switch to Remote Mode
 - ```PLAY```: Start the Music Player or streaming, or send a "play" command to the remote controlled music player
 - ```STOP```: Stop the Music Player or streaming, or send a "stop" command to the remote controlled music player
 - ```NEXT```: Jump to next track/stream, or send a "next" command to the remote controlled music player
