@@ -337,23 +337,23 @@ This is explained [here](#settings-for-remote-mode).
 ### Control the Jukebox via MQTT
 
 The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd, by default **bttf/jb/cmd**. Supported commands are
-- MODE_MP: Switch to Music Player mode
-- MODE_STREAM: Switch to streaming mode
-- MODE_REMOTE; Switch to Remote Mode
-- PLAY: Start the Music Player or streaming, or send a "play" command to the remote controlled music player
-- STOP: Stop the Music Player or streaming, or send a "stop" command to the remote controlled music player
-- NEXT: Jump to next track/stream, or send a "next" command to the remote controlled music player
-- PREV: Jump to previous track/stream, or send a "previous" command to the remote controlled music player
-- SHUFFLE_ON: Enables shuffle mode for Music Player or the remote controlled music player
-- SHUFFLE_OFF: Disables shuffle mode for Music Player or the remote controlled music player
-- FOLDER_*X*: Set folder for Music Player (X=A-K [I is skipped] or 0-9; for example FOLDER_F or FOLDER_7)
-- GOTO_*X*-*Y*: Goto track/stream X-Y (X=A-K, Y=1-10; for example GOTO_A-10), or send "goto" command to remote controlled music player
-- VOLUME_SET_*X*: Set audio volume to X% (0-100).
-- VOLUME_UP, VOLUME:DOWN: Increase/decrease audio volume a notch.
-- POWER_CONTROL_ON: Take over Fake-Power control; POWER_xx commands now control Fake-Power.
-- POWER_CONTROL_OFF: Release Fake-Power control
-- POWER_ON, POWER_OFF: Switch Fake-Power on or off, respectively.
-- NIGHTMODE_ON, NIGHTMODE_OFF: Switches night mode on/off. These commands are only executed if no TCD is connected through BTTFN, or the option _Follow TCD night-mode_ is unchecked in the Config Portal.
+- ```MODE_MP```: Switch to Music Player mode
+- ```MODE_STREAM```: Switch to streaming mode
+- ```MODE_REMOTE```; Switch to Remote Mode
+- ```PLAY```: Start the Music Player or streaming, or send a "play" command to the remote controlled music player
+- ```STOP```: Stop the Music Player or streaming, or send a "stop" command to the remote controlled music player
+- ```NEXT```: Jump to next track/stream, or send a "next" command to the remote controlled music player
+- ```PREV```: Jump to previous track/stream, or send a "previous" command to the remote controlled music player
+- ```SHUFFLE_ON```: Enables shuffle mode for Music Player or the remote controlled music player
+- ```SHUFFLE_OFF```: Disables shuffle mode for Music Player or the remote controlled music player
+- ```FOLDER_*X*```: Set folder for Music Player (X=A-K [I is skipped] or 0-9; for example FOLDER_F or FOLDER_7)
+- ```GOTO_*X*-*Y*```: Goto track/stream X-Y (X=A-K, Y=1-10; for example GOTO_A-10), or send "goto" command to remote controlled music player
+- ```VOLUME_SET_*X*```: Set audio volume to X% (0-100).
+- ```VOLUME_UP```, ```VOLUME:DOWN```: Increase/decrease audio volume a notch.
+- ```POWER_CONTROL_ON```: Take over Fake-Power control; POWER_xx commands now control Fake-Power.
+- ```POWER_CONTROL_OFF```: Release Fake-Power control
+- ```POWER_ON```, ```POWER_OFF```: Switch Fake-Power on or off, respectively.
+- ```NIGHTMODE_ON```, ```NIGHTMODE_OFF```: Switches night mode on/off. These commands are only executed if no TCD is connected through BTTFN, or the option _Follow TCD night-mode_ is unchecked in the Config Portal.
 
 ### Setup
 
