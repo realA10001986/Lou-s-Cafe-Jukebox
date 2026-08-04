@@ -346,9 +346,9 @@ The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd
 - ```PREV```: Jump to previous track/stream, or send a "previous" command to the remote controlled music player
 - ```SHUFFLE_ON```: Enables shuffle mode for Music Player or the remote controlled music player
 - ```SHUFFLE_OFF```: Disables shuffle mode for Music Player or the remote controlled music player
-- ```FOLDER_X```: Set folder for Music Player (X=```A```-```K``` [I is skipped] or ```0```-```9```; for example ```FOLDER_F``` or ```FOLDER_7```)
-- ```GOTO_X-Y```: Goto track/stream X-Y (X=```A```-```K```, Y=```1```-```10```; for example ```GOTO_A-10```), or send "goto" command to remote controlled music player
-- ```VOLUME_SET_X```: Set audio volume to X% (0-100).
+- ```FOLDER_x```: Set folder for Music Player (x=```A```-```K``` [I is skipped] or ```0```-```9```; for example ```FOLDER_F``` or ```FOLDER_7```)
+- ```GOTO_x-y```: Goto track/stream x-y (x=```A```-```K```, y=```1```-```10```; for example ```GOTO_A-10```), or send "goto" command to remote controlled music player
+- ```VOLUME_SET_x```: Set audio volume to x% (0-100).
 - ```VOLUME_UP```, ```VOLUME:DOWN```: Increase/decrease audio volume a notch.
 - ```POWER_CONTROL_ON```: Take over Fake-Power control; POWER_xx commands now control Fake-Power.
 - ```POWER_CONTROL_OFF```: Release Fake-Power control
@@ -603,7 +603,7 @@ The backchannel carries feedback and status information on the Music Player whic
 
 This option should be left unchecked if you do not intend to remote control your Jukebox through HA/MQTT. 
 
-Backchannel data is sent to **bttf/_hostname_/mpstatus** on every change. It can also be triggered at any point by sending __MP_REQSTATUS__ to **bttf/_hostname_/cmd**. The _hostname_ is configured on the WiFi Settings page, and defaults to **jb**. _If you have more than one Jukebox, you must give them unique hostnames._
+Backchannel data is sent to **bttf/_hostname_/mpstatus** on every change. It can also be triggered at any point by sending ```MP_REQSTATUS``` to **bttf/_hostname_/cmd**. The _hostname_ is configured on the WiFi Settings page, and defaults to **jb**. _If you have more than one Jukebox, you must give them unique hostnames._
 
 The data published on the backchannel is a JSON object, containing the following keys:
 - __S__: State. _Value_ can be "P" for playing, "I" for idle, and "O" for off/busy. In 'off' state, the Jukebox does not take commands.
@@ -612,7 +612,7 @@ The data published on the backchannel is a JSON object, containing the following
 - __V__: Volume. This is an integer as a string. If -1, volume control is unavailable. Otherwise 0-100.
 - __SH__: Shuffle. This is an integer as a string, either "0" for 'off', or "1" for 'on'.
 
-Example: __{"S":"I","C":"D-8","V":"20","L":"K-10","SH":"0"}__
+Example: ```{"S":"I","C":"D-8","V":"20","L":"K-10","SH":"0"}```
 
 ##### &#9193; HA controls Fake-Power at startup
 
@@ -622,7 +622,7 @@ This option selects whether HA should be in control of Fake-Power at startup or 
 
 If HA is configured to have Fake-Power control at startup (as per the option *__HA controls Fake-Power at startup__*), this option decides the state of Fake-Power at startup:
 
-If this option is checked, the Jukebox waits for a POWER_ON command from HA/MQTT.
+If this option is checked, the Jukebox waits for a ```POWER_ON``` command from HA/MQTT.
 
 If this option is unchecked, the Jukebox starts without waiting.
 
@@ -651,45 +651,45 @@ For the 'goto' command, topic and/or message can contain placeholders which will
 - {JNN} is the jukebox number with leading zero (01-10)
 
 Examples: <br />
-If your player expects a JSON object and uses track numbers: **{"goto":{N}}** <br />
-If your player expects a JSON object and uses Jukebox numbering: **{"goto":"{JL}-{JN}"}** <br />
-If your player expects a plain string and uses Jukebox numbering: **GOTO_{JL}_{JN}** <br />
+If your player expects a JSON object and uses track numbers: ```{"goto":{N}}``` <br />
+If your player expects a JSON object and uses Jukebox numbering: ```{"goto":"{JL}-{JN}"}``` <br />
+If your player expects a plain string and uses Jukebox numbering: ```GOTO_{JL}_{JN}``` <br />
 
 If the _topic_ for 'volume down' is not empty, it is assumed that 'volume up' and 'volume down' are in fact commands to increase/decrease the volume. If 'volume down' is empty, it is assumed that the command in 'volume up' is in fact 'volume set'. In that case, topic and/or message can contain placeholders which will be replaced accordingly:
 - {P} for volume percentage (0 - 100)
 - {F} for volume fraction (0.0 - 1.0)
 
 Examples:<br />
-JSON, volume as fraction: **{"volume":{F})** <br />
-Plain string, volume as percentage: **VOLUME_{P}** <br />
+JSON, volume as fraction: ```{"volume":{F})``` <br />
+Plain string, volume as percentage: ```VOLUME_{P}``` <br />
 
 For CircuitSetup/A10001986 props (TCD, Flux Capacitor, Dash Gauges, VSR), the values must be:
 - Topics all set to **bttf/_XX_/cmd** (where XX is either **tcd**, **fc**, **dg** or **vsr**)
-- Play: **MP_PLAY**
-- Stop: **MP_STOP**
-- Next: **MP_NEXT**
-- Prev: **MP_PREV**
-- Goto: **INJECT_888{NNN}**
-- Volume up / down: **VOLUME_SET_{P}** / empty
-- Shuffle on: **MP_SHUFFLE_ON**
-- Shuffle off: **MP_SHUFFLE_OFF**
+- Play: ```MP_PLAY```
+- Stop: ```MP_STOP```
+- Next: ```MP_NEXT```
+- Prev: ```MP_PREV```
+- Goto: ```INJECT_888{NNN}```
+- Volume up / down: ```VOLUME_SET_{P}``` / empty
+- Shuffle on: ```MP_SHUFFLE_ON```
+- Shuffle off: ```MP_SHUFFLE_OFF```
 
 For a second, identical Jukebox, the values must be:
 - Topics all set to **bttf/_XX_/cmd** (where XX is the hostname of the remote controlled Jukebox)
-- Play: **PLAY**
-- Stop: **STOP**
-- Next: **NEXT**
-- Prev: **PREV**
-- Goto: **GOTO_{JL}_{JN}**
-- Volume up / down: **VOLUME_SET_{P}** / empty
-- Shuffle on: **SHUFFLE_ON**
-- Shuffle off: **SHUFFLE_OFF**
+- Play: ```PLAY```
+- Stop: ```STOP```
+- Next: ```NEXT```
+- Prev: ```PREV```
+- Goto: ```GOTO_{JL}_{JN}```
+- Volume up / down: ```VOLUME_SET_{P}``` / empty
+- Shuffle on: ```SHUFFLE_ON```
+- Shuffle off: ```SHUFFLE_OFF```
 
 ##### &#9193; Remote Player backchannel
 
 In this section, the format of the remote player's feedback can be configured. The feedback must come as a JSON object:
 
-For example: **{"STATE":"PLAYING","VOLUME":"50"}** or **{"CURRENT":0,"FIRST":"0","LAST":"99"}**
+For example: ```{"STATE":"PLAYING","VOLUME":"50"}** or **{"CURRENT":0,"FIRST":"0","LAST":"99"}```
 
 The feedback data can contain the following fields:
 
