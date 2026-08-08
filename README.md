@@ -283,7 +283,7 @@ Afterwards, the Jukebox and the TCD can communicate wirelessly and
      <td>5300-5320</td>
      </tr>
     <tr>
-     <td align="left">Select music folder for Music Player (0-19)</td>
+     <td align="left">Select music folder for Music Player (A-K:50-59, 1-10:60-69)</td>
      <td>5050-5069</td>
     </tr>
     <tr>
