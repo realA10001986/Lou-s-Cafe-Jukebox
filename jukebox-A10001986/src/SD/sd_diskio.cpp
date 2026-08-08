@@ -593,11 +593,11 @@ DSTATUS ff_sd_initialize(uint8_t pdrv)
     // Enable CRC for data transfers in SPI mode (required for reliable communication)
     // TW: Some cards apparently reject the first CRC_ON_OFF; retry once (same as IDF).
     token = sdTransaction(pdrv, CRC_ON_OFF, 1, NULL);
-    if (token != 1 && token != 0x5) {
+    if (token != 1 && token != 5) {
         delay(10);
         token = sdTransaction(pdrv, CRC_ON_OFF, 1, NULL);
     }
-    if (token == 0x5) {
+    if (token == 5) {
         // old card, not supporting CRC
         card->supports_crc = false;
     } else if (token != 1) {
@@ -670,7 +670,7 @@ DSTATUS ff_sd_initialize(uint8_t pdrv)
             //token = sdTransaction(pdrv, APP_OP_COND, 0x100000, NULL);
             // TW: Only bit 30 is defined, all others "shall be 0" in SPI mode
             token = sdTransaction(pdrv, APP_OP_COND, 0, NULL);
-        } while (token == 0x01 && (millis() - start) < 2000);
+        } while (token == 1 && (millis() - start) < 2000);
 
         if (!token) {
             card->type = CARD_SD;   // Standard SD card
@@ -681,9 +681,9 @@ DSTATUS ff_sd_initialize(uint8_t pdrv)
                 //token = sdTransaction(pdrv, SEND_OP_COND, 0x100000, NULL);
                 // TW: For MMC, SEND_OP_COND has no arguments, hence 0
                 token = sdTransaction(pdrv, SEND_OP_COND, 0, NULL);
-            } while (token != 0x00 && (millis() - start) < 2000);
+            } while (token && (millis() - start) < 2000);
 
-            if (token == 0x00) {
+            if (!token) {
                 card->type = CARD_MMC;
             } else {
                 #ifdef TW_SD_DEBUG
