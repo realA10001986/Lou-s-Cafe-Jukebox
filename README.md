@@ -636,7 +636,7 @@ The Jukebox knows two alternative addressing schemes for tracks:
 - Jukebox numbering: Consists of a letter and a number, separated by space, underscore or dash(minus). The option *__Jukebox-style numbering includes letters I and O__* determines whether the remote player includes those letter or those are skipped.
 - Track number: Is an actual number.
 
-If track numbers are used, the conversion formula between letter/number track selection and the actual track number is **(letter * 10) + number**, where letter is A=0 and counted up to 9, and number is 1=0 through 10=9.
+If track numbers are used, the conversion formula between letter/number track selection and the actual track number is **(letter * 10) + (number - 1)**, where letter is A=0 and counted up to 9, and number is 1 through 10.
 
 ##### &#9193; Remote Player's commands
 
