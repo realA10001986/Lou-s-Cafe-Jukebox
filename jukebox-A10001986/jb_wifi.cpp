@@ -220,7 +220,6 @@ WiFiManagerParameter custom_ITT("ITT", "Ignore time travels", settings.ignTT, "c
 
 WiFiManagerParameter custom_haveSD(wmBuildHaveSD, WFM_SECTS);
 WiFiManagerParameter custom_CfgOnSD("CfgSD", "Save secondary settings on SD<br><span>Check this to avoid flash wear</span>", settings.CfgOnSD, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-//WiFiManagerParameter custom_sdFrq("sdFrq", "4MHz SD clock speed<br><span>Checking this might help in case of SD card problems</span>", settings.sdFreq, WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
 WiFiManagerParameter custom_waitPwrOn("wpo", "Wait for fake-power-on upon boot", settings.waitForPower, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS|WFM_FOOT);
 
@@ -442,7 +441,6 @@ void wifi_setup()
       
       &custom_haveSD,
       &custom_CfgOnSD,
-      //&custom_sdFrq,
 
       &custom_waitPwrOn,
       
@@ -897,7 +895,6 @@ void wifi_loop()
             
             oldCfgOnSD = settings.CfgOnSD[0];
             evalCB(settings.CfgOnSD, &custom_CfgOnSD);
-            //evalCB(settings.sdFreq, &custom_sdFrq);
             
             evalCB(settings.waitForPower, &custom_waitPwrOn);
 
@@ -1282,7 +1279,7 @@ static void checkForUpdate()
     if(uver) {
         haveCVer = true;
         if(((uver << 8) | urev) > ((cver << 8) | crev)) {
-            snprintf(newversion, sizeof(newversion), "%d.%d", uver, urev);
+            snprintf(newversion, sizeof(newversion), "%d.%02d", uver, urev);
         }
     }
 
@@ -1531,7 +1528,6 @@ static void updateConfigPortalValues()
     setCBVal(&custom_ITT, settings.ignTT);
 
     setCBVal(&custom_CfgOnSD, settings.CfgOnSD);
-    //setCBVal(&custom_sdFrq, settings.sdFreq);
 
     setCBVal(&custom_waitPwrOn, settings.waitForPower);
 

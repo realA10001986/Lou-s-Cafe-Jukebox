@@ -74,6 +74,12 @@
 #include "jb_main.h"
 #include "jb_wifi.h"
 
+// SPI speed for SD. We use 16000000 here as
+// people likely use extenders.
+// 25000000 is max for SD, 20000000 is max for MMC
+// SD-code automatically limits according to card type
+#define SD_SPI_FREQ 16000000
+
 // Size of main config JSON
 // Needs to be adapted when config grows
 #define JSON_SIZE 5000
@@ -359,6 +365,7 @@ static bool loadConfigFile(const char *fn, uint8_t *buf, int len, int& validByte
     if(!haveConfigFile && haveFS && (!forcefs || (forcefs < 0 && !FlashROMode))) {
         haveConfigFile = readFileFromFSU(fn, bbuf, fl);
     }
+    if(haveConfigFile && (fl < 2)) haveConfigFile = false;
     if(haveConfigFile) {
         uint8_t chksum = cfChkSum(bbuf, fl - 1);
         if((haveConfigFile = (bbuf[fl - 1] == chksum))) {
@@ -470,8 +477,13 @@ static DeserializationError readJSONCfgFile(JsonDocument& json, File& configFile
     size_t bufSize = configFile.size();
     DeserializationError ret;
 
+    if(!bufSize) 
+        return DeserializationError::InvalidInput;
+
     if(!(buf = (const char *)malloc(bufSize + 1))) {
+        #ifdef JB_DBG_BOOT
         Serial.printf("rJSON: malloc failed (%d)\n", bufSize);
+        #endif
         return DeserializationError::NoMemory;
     }
 
@@ -501,7 +513,9 @@ static bool writeJSONCfgFile(const JsonDocument& json, const char *fn, bool useS
     bool success = false;
 
     if(!(buf = (char *)malloc(bufSize + 1))) {
+        #ifdef JB_DBG_BOOT
         Serial.printf("wJSON: malloc failed (%d) (%s)\n", bufSize, fn);
+        #endif
         return false;
     }
 
@@ -537,9 +551,11 @@ static bool writeJSONCfgFile(const JsonDocument& json, const char *fn, bool useS
 
     free(buf);
 
+    #ifdef JB_DBG_BOOT
     if(!success) {
         Serial.printf("wJSON: %s - %s\n", fn, failFileWrite);
     }
+    #endif
 
     return success;
 }
@@ -677,23 +693,21 @@ static bool read_settings(File configFile, int cfgReadCount)
     
     DECLARE_D_JSON(JSON_SIZE,json);
 
-    DeserializationError error = readJSONCfgFile(json, configFile, &mainConfigHash);
+    if(!readJSONCfgFile(json, configFile, &mainConfigHash)) {
 
-    #if ARDUINOJSON_VERSION_MAJOR < 7
-    jsonSize = json.memoryUsage();
-    if(jsonSize > JSON_SIZE) {
-        Serial.printf("ERROR: Config too large (%d vs %d)\n", jsonSize, JSON_SIZE);
-    }
-    
-    #ifdef JB_DBG_BOOT
-    if(jsonSize > JSON_SIZE - 256) {
-          Serial.printf("%s: WARNING: JSON_SIZE needs to be adapted **************\n", funcName);
-    }
-    Serial.printf("%s: Size of document: %d (JSON_SIZE %d)\n", funcName, jsonSize, JSON_SIZE);
-    #endif
-    #endif
-
-    if(!error) {
+        #if ARDUINOJSON_VERSION_MAJOR < 7
+        jsonSize = json.memoryUsage();
+        if(jsonSize > JSON_SIZE) {
+            Serial.printf("ERROR: Config too large (%d vs %d)\n", jsonSize, JSON_SIZE);
+        }
+        
+        #ifdef JB_DBG_BOOT
+        if(jsonSize > JSON_SIZE - 256) {
+              Serial.printf("%s: WARNING: JSON_SIZE needs to be adapted **************\n", funcName);
+        }
+        Serial.printf("%s: Size of document: %d (JSON_SIZE %d)\n", funcName, jsonSize, JSON_SIZE);
+        #endif
+        #endif
 
         // WiFi Configuration
 
@@ -745,7 +759,6 @@ static bool read_settings(File configFile, int cfgReadCount)
         wd |= CopyCheckValidNumParm(json["ignTT"], settings.ignTT, sizeof(settings.ignTT), 0, 1, DEF_IGN_TT);
 
         wd |= CopyCheckValidNumParm(json["CoSD"], settings.CfgOnSD, sizeof(settings.CfgOnSD), 0, 1, DEF_CFG_ON_SD);
-        //wd |= CopyCheckValidNumParm(json["sdFreq"], settings.sdFreq, sizeof(settings.sdFreq), 0, 1, DEF_SD_FREQ);
         
         wd |= CopyCheckValidNumParm(json["wPwr"], settings.waitForPower, sizeof(settings.waitForPower), 0, 1, DEF_WAIT_PWR);
 
@@ -848,7 +861,6 @@ void write_settings()
     json["ignTT"] = (const char *)settings.ignTT;
 
     json["CoSD"] = (const char *)settings.CfgOnSD;
-    //json["sdFreq"] = (const char *)settings.sdFreq;
 
     json["wPwr"] = (const char *)settings.waitForPower;
 
@@ -954,7 +966,10 @@ void settings_setup()
 
     } else {
 
-        Serial.println("failed.\n*** Mounting flash FS failed. Using SD (if available)");
+        #ifdef JB_DBG_BOOT
+        Serial.println("failed.");
+        #endif
+        Serial.println("*** Mounting flash FS failed. Using SD (if available)");
 
     }
     
@@ -968,9 +983,11 @@ void settings_setup()
     Serial.printf("%s: Mounting SD... ", funcName);
     #endif
 
-    if(!(haveSD = SD.begin(SD_CS_PIN, SPI, 16000000))) {
+    // Two attemps. Not really a necessity after
+    // the SD init changes (jul 2026), but why not.
+    if(!(haveSD = SD.begin(SD_CS_PIN, SPI, SD_SPI_FREQ))) {
         delay(20);
-        haveSD = SD.begin(SD_CS_PIN, SPI, 25000000);
+        haveSD = SD.begin(SD_CS_PIN, SPI, SD_SPI_FREQ);
     }
     if(haveSD) {
         uint8_t cardType = SD.cardType();
@@ -1177,9 +1194,6 @@ void saveUpdVers(int v, int r)
 
 void loadMusFoldNum()
 {
-    if(!haveSD)
-        return;
-
     if(haveTerSettings) {
         #ifdef JB_DBG_BOOT
         Serial.println("loadMusFoldNum: extracting from terSettings");
@@ -1202,7 +1216,7 @@ void saveMusFoldNum()
 
 void loadShuffle()
 {
-    if(haveSD && haveTerSettings) {
+    if(haveTerSettings) {
         aud_state.mpShuffle = terSettings.mpShuffle;
     }
 }
@@ -1219,7 +1233,7 @@ void saveShuffle()
 
 void loadOpMode()
 {
-    if(haveSD && haveTerSettings) {
+    if(haveTerSettings) {
         opMode = terSettings.opMode;
     }
 }
@@ -1243,7 +1257,7 @@ void saveOpMode()
 
 void loadCurStream()
 {
-    if(haveSD && haveTerSettings) {
+    if(haveTerSettings) {
         curStream = terSettings.curStream;
     }
 }
@@ -1381,6 +1395,7 @@ void moveSettings()
         #ifdef JB_DBG_BOOT
         Serial.println("moveSettings: Writing to flash prohibted (FlashROMode), aborting.");
         #endif
+        return;
     }
 
     // Flush pending saves

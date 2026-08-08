@@ -185,7 +185,6 @@ struct Settings {
     char ignTT[2]           = MS(DEF_IGN_TT);
 
     char CfgOnSD[2]         = MS(DEF_CFG_ON_SD);
-    //char sdFreq[2]          = MS(DEF_SD_FREQ);
 
     char waitForPower[2]    = MS(DEF_WAIT_PWR);
 

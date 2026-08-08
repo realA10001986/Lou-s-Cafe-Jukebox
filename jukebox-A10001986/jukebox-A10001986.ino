@@ -114,7 +114,7 @@
  *     binary does not fit the ESP32's flash memory. Use v6 instead.)
  *
  * - Download the complete firmware source code:
- *   https://github.com/realA10001986/Jukebox/archive/refs/heads/main.zip
+ *   https://github.com/realA10001986/Lou-s-Cafe-Jukebox/archive/refs/heads/master.zip
  *   Extract this file somewhere. Enter the "jukebox-A10001986" folder and 
  *   double-click on "jukebox-A10001986.ino". This opens the firmware in the
  *   Arduino IDE.
@@ -140,6 +140,8 @@
 
 /*  Changelog
  *  
+ *  2026/08/08 (A10001986) [1.03]
+ *    - More robust error handling in case of malformed config files
  *  2026/07/17 (A10001986) [1.02]
  *    - Bugfix: Avoid crash on 0-length config files
  *    - SD: More compatibility fixes
