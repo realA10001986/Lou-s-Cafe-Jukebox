@@ -211,7 +211,6 @@ The Jukebox's built-in sound effects can be substituted by your own sound files 
 
 Your replacements need to be put in the root (top-most) directory of the SD card, be in mp3 format (128kbps max) and named as follows:
 - "alarm.mp3". Played when the alarm sounds (triggered by a Time Circuits Display via BTTFN or MQTT);
-- "0.mp3" through "9.mp3", "dot.mp3": Numbers for IP address read-out;
 - "volchg.mp3": Played when using the volume knob to change volume level when no other sound is played
 
 The following sounds are time-sync'd to display action. If you decide to substitute these with your own, be prepared to lose synchronicity:
