@@ -121,6 +121,12 @@ bool            useJBNum = true;    // Send Jukebox numbering over backchannel (
 
 bool            playJB = true;
 
+#define SC_VER 1
+static const char     sc_fn[] = "/SC.bin";
+static const uint32_t sc_magic = (SC_VER << 24) | 0x43434a;
+static AudioFileSourceLoop *srcSC = NULL;
+static int16_t        segList[31];
+
 static char     append_audio_file[32];
 static float    append_vol;
 static uint32_t append_flags;
@@ -130,6 +136,8 @@ static const char *tcdrdone = "/TCD_DONE.TXT";
 unsigned long   renNow1, renNow2;
 
 static float    getVolume();
+
+static void     checkForSC();
 
 static int      mp_findMaxNum();
 static bool     mp_play_int(bool force);
@@ -188,6 +196,8 @@ void audio_setup()
     // Limit max bitrate for mp3 playback; playback aborts if 
     // bitrate is higher than that.
     mp3->setMaxBitRate(160000);
+
+    checkForSC();
 
     audioInitDone = true;
 }
@@ -249,24 +259,23 @@ static int32_t skipID3(char *buf)
     return 0;
 }
 
-void append_file(const char *audio_file, uint32_t flags, float volumeFactor)
+static void setupLoopAndBegin(AudioFileSourceLoop *src, uint32_t flags)
 {
-    if(strlen(audio_file) >= sizeof(append_audio_file) - 1) {
-        #ifdef JB_DBG_AUDIO
-        Serial.printf("Internal error: Sound file name too long (%d vs max %d)\n", strlen(audio_file), sizeof(append_audio_file));
-        #endif
-        return;
-    }
-    strcpy(append_audio_file, audio_file);
-    append_flags = flags;
-    append_vol = volumeFactor;
-    appendFile = 1;
+    int32_t pos;
+    char buf[10];
+
+    buf[0] = 0;
+
+    src->setPlayLoop(!!(flags & PA_LOOP));
+    src->read((void *)buf, 10);
+    pos = skipID3(buf);
+    src->setStartPos(pos);
+    src->seek(pos, SEEK_SET);
+    mp3->begin(src, out);
 }
 
 void play_file(const char *audio_file, uint32_t flags, float volumeFactor)
 {
-    char buf[10];
-    int32_t pos = 0;
     bool mpWasActive = false;
 
     appendFile = 0;   // Clear appended, append must be called AFTER play_file
@@ -293,25 +302,22 @@ void play_file(const char *audio_file, uint32_t flags, float volumeFactor)
 
     out->SetGain(getVolume());
 
-    buf[0] = 0;
-
-    if(haveSD && ((flags & PA_ALLOWSD) || FlashROMode) && mySD0->open(audio_file)) {
-        mySD0->setPlayLoop(!!(flags & PA_LOOP));
-        mySD0->read((void *)buf, 10);
-        pos = skipID3(buf);
-        mySD0->setStartPos(pos);
-        mySD0->seek(pos, SEEK_SET);
-        mp3->begin(mySD0, out);
+    if(flags & PA_SCSEGS) {
+        for(int i = 0; i <= ((const int16_t *)audio_file)[0] && i <= 30; i++) {
+            segList[i] = ((const int16_t *)audio_file)[i];
+        }
+        if(srcSC && srcSC->open_c(sc_fn, (const int16_t *)segList)) {
+            mp3->begin(srcSC, out);
+        } else {
+            play_flags = 0;
+        }
+    } else if(haveSD && ((flags & PA_ALLOWSD) || FlashROMode) && mySD0->open(audio_file)) {
+        setupLoopAndBegin(mySD0, flags);
         #ifdef JB_DBG_AUDIO
         Serial.println("Playing from SD");
         #endif
     } else if(haveFS && myFS0->open(audio_file)) {
-        myFS0->setPlayLoop(!!(flags & PA_LOOP));
-        myFS0->read((void *)buf, 10);
-        pos = skipID3(buf);
-        myFS0->setStartPos(pos);
-        myFS0->seek(pos, SEEK_SET);
-        mp3->begin(myFS0, out);
+        setupLoopAndBegin(myFS0, flags);
         #ifdef JB_DBG_AUDIO
         Serial.println("Playing from flash FS");
         #endif
@@ -405,6 +411,29 @@ bool play_key(int k, bool stopOnly)
     return true;
 }
 
+/*
+ * Append file to currently played one
+ * 
+ */
+void append_file(const char *audio_file, uint32_t flags, float volumeFactor)
+{
+    if(strlen(audio_file) >= sizeof(append_audio_file) - 1) {
+        #ifdef JB_DBG_AUDIO
+        Serial.printf("Internal error: Sound file name too long (%d vs max %d)\n", strlen(audio_file), sizeof(append_audio_file));
+        #endif
+        return;
+    }
+    strcpy(append_audio_file, audio_file);
+    append_flags = flags;
+    append_vol = volumeFactor;
+    appendFile = 1;
+}
+
+bool append_pending()
+{
+    return appendFile;
+}
+
 static float getVolume()
 {
     float vol_val = volTable[aud_state.curVolume];
@@ -438,21 +467,18 @@ bool check_file_SD(const char *audio_file)
     return (haveSD && SD.exists(audio_file));
 }
 
-unsigned int check_file_len_SD(const char *audio_file, bool& file_exists, uint8_t *tbuf, uint32_t tsz)
+static void checkForSC()
 {
-    unsigned int s = 0;
-    if(haveSD) {
-        File file;
-        if(file = SD.open(audio_file, FILE_READ)) {
-            s = file.size();
-            if(tbuf && tsz) {
-                if(file.read(tbuf, tsz) != tsz) s = 0;
-            }
-            file.close();
+    unsigned int sps = 0;
+    uint32_t tbuf[3];
+    bool srcMedium;
+    
+    if((sps = check_file_len(sc_fn, srcMedium, (uint8_t *)&tbuf[0], 12))) {
+        if((tbuf[0] == sc_magic) && (tbuf[1] == sps ^ sc_magic)) {
+            if(srcMedium) srcSC = myFS0;
+            else          srcSC = mySD0;
         }
     }
-    file_exists = (s > 0);
-    return s;
 }
 
 // Audio is really done and free for use
@@ -489,11 +515,6 @@ void stop_key()
     if(play_flags & PA_KEYMASK) {
         stopAudio();
     }
-}
-
-bool append_pending()
-{
-    return appendFile;
 }
 
 bool st_active()

@@ -23,12 +23,13 @@ class AudioFileSourceLoop : public AudioFileSource
     ~AudioFileSourceLoop();
     
     virtual bool open(const char *filename) = 0;
+    bool open_c(const char *filename, const int16_t *segs);
     uint32_t read(void *data, uint32_t len) override;
     bool seek(int32_t pos, int dir) override;
-    bool close() override                    { f.close(); return true; }
+    bool close() override                    { if(toc) { free(toc); toc = NULL; } f.close(); return true; }
     bool isOpen() override                   { return f ? true : false; }
     uint32_t getSize() override              { return f ? f.size() : 0; }
-    uint32_t getPos() override               { return (f && (ftype == 1)) ? f.position() : 0; }
+    uint32_t getPos() override               { return f ? ((ftype == 2) ? (csegOLen - csegLen) : f.position()) : 0; }
     void setStartPos(int32_t newStartPos)    { startPos = newStartPos; }
     void setPlayLoop(bool playLoop)          { doPlayLoop = playLoop; }
 
@@ -36,7 +37,15 @@ class AudioFileSourceLoop : public AudioFileSource
     File    f;
     int32_t startPos = 0;
     bool    doPlayLoop = false;
-    int     ftype = 0;  
+    int     ftype = 0;
+    
+  private:
+    bool     seekNext();
+    uint32_t c_read(uint8_t *buf, uint32_t len);
+
+    int32_t  *toc = NULL;
+    int      segIdx = 0;
+    uint32_t csegLen = 0, csegOLen = 0;
 };
 
 class AudioFileSourceSDLoop : public AudioFileSourceLoop

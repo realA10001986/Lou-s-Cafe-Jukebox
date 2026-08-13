@@ -65,11 +65,11 @@
 #define PA_ALLOWSD 0x000004
 #define PA_DYNVOL  0x000008
 #define PA_LOOP    0x000010
+#define PA_SCSEGS  0x000020
 #define PA_ISMUSIC 0x000040
 #define PA_VOLCHG  0x000080
-#define PA_STREAM  0x100000
-// upper 8 bits all taken for key ID
 #define PA_KEYMASK 0x01ff00
+#define PA_STREAM  0x100000
 #define PA_MASK    (PA_CHECKNM|PA_INTRMUS|PA_ALLOWSD|PA_DYNVOL|PA_LOOP)
 
 void    audio_setup();
@@ -83,7 +83,6 @@ int     play_stream(const char *url, uint32_t flags, float volumeFactor);
 bool    play_key(int k, bool stopOnly = false);
 
 bool         check_file_SD(const char *audio_file);
-unsigned int check_file_len_SD(const char *audio_file, bool& file_exists, uint8_t *tbuf = NULL, uint32_t tsz = 0);
 
 bool    checkAudioDone();
 bool    checkMP3Running();

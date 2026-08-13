@@ -62,6 +62,8 @@
 
 void unmount_fs();
 
+unsigned int check_file_len(const char *audio_file, bool& srcMedium, uint8_t *tbuf, uint32_t tsz);
+
 bool evalBool(char *s);
 bool evalBoolSetClear(char *s, uint32_t& ff, uint32_t fl);
 

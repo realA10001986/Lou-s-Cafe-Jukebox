@@ -91,11 +91,11 @@
 #define DECLARE_D_JSON(x,n) DynamicJsonDocument n(x);
 #endif 
 
-#define NUM_AUDIOFILES 28
+#define NUM_AUDIOFILES 18
 #define AC_FMTV 2
 #define AC_OHSZ (14 + ((NUM_AUDIOFILES+1)*(32+4)))
-#define SND_REQ_VERSION "JB01"
-#define AC_TS 868924
+#define SND_REQ_VERSION "JB02"
+#define AC_TS 868159
 
 // Secondary settings
 // Do not change or insert new values, this
@@ -240,6 +240,31 @@ void unmount_fs()
 /*
  * Generic file readers/writers
  */
+
+unsigned int check_file_len(const char *fn, bool& srcMedium, uint8_t *tbuf, uint32_t tsz)
+{
+    unsigned int s = 0;
+    File file;
+
+    if(FlashROMode) {
+        file = SD.open(fn, FILE_READ);
+        srcMedium = false;
+    } else if(haveFS) {
+        file = MYNVS.open(fn, FILE_READ);
+        srcMedium = true;
+    } else 
+        return 0;
+        
+    if(file) {
+        s = file.size();
+        if(tbuf && tsz) {
+            if(file.read(tbuf, tsz) != tsz) s = 0;
+        }
+        file.close();
+    }
+
+    return s;
+}
 
 static bool readFile(File& myFile, uint8_t *buf, int len)
 {
@@ -903,6 +928,23 @@ void write_settings()
     writeJSONCfgFile(json, cfgName, FlashROMode, mainConfigHash, &mainConfigHash);
 }
 
+static void removeObsFiles()
+{
+    char oBuf[] = "/0.mp3";
+    
+    if(MYNVS.exists(oBuf)) {
+        #ifdef DG_DBG
+        Serial.println("Removing old audio files");
+        #endif
+        for(int i = 0; i < 10; i++) {
+            oBuf[1] = i + '0';
+            MYNVS.remove(oBuf);
+        }
+        MYNVS.remove("/dot.mp3");
+    }
+}
+
+
 /*
  * settings_setup()
  * 
@@ -948,6 +990,8 @@ void settings_setup()
         #ifdef JB_DBG_BOOT
         Serial.printf("ok.\nFlashFS: %d total, %d used, %d free\n", MYNVS.totalBytes(), MYNVS.usedBytes(), MYNVS.totalBytes() - MYNVS.usedBytes());
         #endif
+
+        removeObsFiles();
         
         if(MYNVS.exists(cfgName)) {
             File configFile = MYNVS.open(cfgName, "r");
@@ -1549,11 +1593,11 @@ bool check_if_default_audio_present()
             ts = file.size();
             file.read(dbuf, 14);
             file.close();
-            if((!memcmp(dbuf, CONID, 4))             && 
-               ((*(dbuf+4) & 0x7f) == AC_FMTV)       &&
-               (!memcmp(dbuf+5, rspv, 4))            &&
-               (*(dbuf+9) == (NUM_AUDIOFILES + 1))   &&
-               (getuint32(dbuf+10) == soa)           &&
+            if((!memcmp(dbuf, CONID, 4))         && 
+               ((*(dbuf+4) & 0x7f) == AC_FMTV)   &&
+               (!memcmp(dbuf+5, rspv, 4))        &&
+               (*(dbuf+9) == (NUM_AUDIOFILES+1)) &&
+               (getuint32(dbuf+10) == soa)       &&
                (ts > soa + AC_OHSZ)) {
                 ic = true;
                 if(!(*(dbuf+4) & 0x80)) r=f;

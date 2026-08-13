@@ -21,8 +21,8 @@
 
 // These must not contain any characters other than
 // '0'-'9', 'A'-'Z', '(', ')', '.', '_', '-' or space
-#define JB_VERSION       "V1.03"      // 7 chars max. Do NOT change format.
-#define JB_VERSION_EXTRA "AUG082026"  // 13 chars max
+#define JB_VERSION       "V1.03.1"      // 7 chars max. Do NOT change format.
+#define JB_VERSION_EXTRA "AUG112026"  // 13 chars max
 
 /*************************************************************************
  ***                           Miscellaneous                           ***

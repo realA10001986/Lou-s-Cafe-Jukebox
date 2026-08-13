@@ -1479,7 +1479,9 @@ static void say_ip_address()
 {
     uint8_t a, b, c, d;
     char ipbuf[16];
-    char numfname[] = "/x.mp3";
+    int16_t segList[1+(3*3)+3];
+    int j = 1;
+    int oldVol = aud_state.curVolume;
 
     csf |= CSF_BUSY;
     
@@ -1488,24 +1490,27 @@ static void say_ip_address()
     
     stopAudio();
     flushDelayedSave();
+
+    if(!oldVol) aud_state.curVolume = DEFAULT_VOLUME;
     
     wifi_getIP(a, b, c, d);
     sprintf(ipbuf, "%d.%d.%d.%d", a, b, c, d);
-    numfname[1] = ipbuf[0];
-    
-    play_file(numfname, PA_INTRMUS|PA_ALLOWSD);
-    for(int i = 1; i < strlen(ipbuf); i++) {
-        if(ipbuf[i] == '.') {
-            append_file("/dot.mp3", PA_INTRMUS|PA_ALLOWSD);
-        } else {
-            numfname[1] = ipbuf[i];
-            append_file(numfname, PA_INTRMUS|PA_ALLOWSD);
-        }
-        while(append_pending()) {
-            mydelay(10);
-        }
+
+    for(int i = 0; i < strlen(ipbuf); i++) {
+        if(ipbuf[i] == '.')
+            segList[j++] = 10;
+        else 
+            segList[j++] = ipbuf[i] - '0';
     }
+    segList[0] = j - 1;
+
+    play_file((const char *)segList, PA_SCSEGS, 1.0);
+
     waitAudioDone();
+    waitAudioDone();
+    waitAudioDone();
+
+    aud_state.curVolume = oldVol;
 
     csf &= ~CSF_BUSY;
     

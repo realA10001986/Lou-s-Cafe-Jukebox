@@ -28,6 +28,19 @@ uint32_t AudioFileSourceLoop::read(void *data, uint32_t len)
         seek(startPos, SEEK_SET);
         glen += f.read(((uint8_t *)data) + glen, len - glen);
         break;
+    case 2:
+        while(ftype && (len > glen)) {
+            if(csegLen >= rlen) {
+                csegLen -= rlen;
+                g = c_read((uint8_t *)data, rlen);
+            } else {
+                g = c_read((uint8_t *)data, csegLen);
+                seekNext();
+            }
+            data = (void *)((uint8_t *)data + g);
+            glen += g;
+            rlen -= g;
+        }
     }
 
     return glen;
@@ -40,6 +53,58 @@ bool AudioFileSourceLoop::seek(int32_t pos, int dir)
     else if(dir == SEEK_CUR) return f.seek(f.position() + pos);
     else if(dir == SEEK_END) return f.seek(f.size() + pos);
     return false;
+}
+
+bool AudioFileSourceLoop::open_c(const char *filename, const int16_t *segs)
+{
+    uint32_t temp[3];
+    int32_t *ftoc;
+    int gsi = *segs;
+    int si = 0;
+
+    if(toc) { free(toc); toc = NULL; }
+
+    segIdx = *segs * 2;
+    
+    if((toc = (int32_t *)malloc(segIdx * 4))) {
+        if(open(filename)) {
+            if(read((uint8_t *)&temp[0], 12) == 12) {
+                if((ftoc = (int32_t *)malloc(temp[2]))) {
+                    if(read((uint8_t *)ftoc, temp[2]) == temp[2]) {
+                        while(gsi) {
+                            toc[si++] = ftoc[segs[gsi]] - ftoc[segs[gsi] + 1];
+                            toc[si++] = ~ftoc[segs[gsi--]];
+                        }
+                        free(ftoc);
+                        ftype = 2;
+                        if(seekNext()) return true;
+                    }
+                }
+            }
+            close();
+        }
+        if(toc) { free(toc); toc = NULL; }
+    }
+    return false;
+}
+
+bool AudioFileSourceLoop::seekNext()
+{
+    if(!segIdx || !toc) {
+        csegLen = csegOLen = ftype = 0;
+        return false;
+    }
+
+    f.seek(toc[--segIdx]);
+    
+    csegOLen = csegLen = toc[--segIdx];
+
+    return true;
+}
+
+uint32_t AudioFileSourceLoop::c_read(uint8_t *buf, uint32_t len)
+{
+    return f.read(buf, len);
 }
 
 // SD -----------------------------------------------
