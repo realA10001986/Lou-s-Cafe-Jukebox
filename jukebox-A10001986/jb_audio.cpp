@@ -261,16 +261,19 @@ static int32_t skipID3(char *buf)
 
 static void setupLoopAndBegin(AudioFileSourceLoop *src, uint32_t flags)
 {
-    int32_t pos;
+    int32_t pos = 0;
     char buf[10];
 
     buf[0] = 0;
 
     src->setPlayLoop(!!(flags & PA_LOOP));
-    src->read((void *)buf, 10);
-    pos = skipID3(buf);
+    if(flags & PA_DOID3TS) {
+        src->read((void *)buf, 10);
+        pos = skipID3(buf);
+        src->seek(pos, SEEK_SET);
+    }
     src->setStartPos(pos);
-    src->seek(pos, SEEK_SET);
+    
     mp3->begin(src, out);
 }
 
@@ -312,7 +315,7 @@ void play_file(const char *audio_file, uint32_t flags, float volumeFactor)
             play_flags = 0;
         }
     } else if(haveSD && ((flags & PA_ALLOWSD) || FlashROMode) && mySD0->open(audio_file)) {
-        setupLoopAndBegin(mySD0, flags);
+        setupLoopAndBegin(mySD0, flags|PA_DOID3TS);
         #ifdef JB_DBG_AUDIO
         Serial.println("Playing from SD");
         #endif

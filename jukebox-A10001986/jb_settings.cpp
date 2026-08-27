@@ -94,8 +94,8 @@
 #define NUM_AUDIOFILES 18
 #define AC_FMTV 2
 #define AC_OHSZ (14 + ((NUM_AUDIOFILES+1)*(32+4)))
-#define SND_REQ_VERSION "JB02"
-#define AC_TS 868159
+#define SND_REQ_VERSION "JB03"
+#define AC_TS 861040
 
 // Secondary settings
 // Do not change or insert new values, this

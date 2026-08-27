@@ -172,7 +172,6 @@ static bool   remAllowShuffleSignal = false;
 bool          remIncI = false;
 
 bool networkTimeTravel = false;
-bool networkTCDTT      = false;
 bool networkReentry    = false;
 bool networkAbort      = false;
 bool networkAlarm      = false;
@@ -185,9 +184,6 @@ static bool useNM = false;
 static bool tcdNM = false;
 static bool NM_blue = true;
 static bool ignoreTT = false;
-
-bool doPrepareTT = false;
-bool doWakeup = false;
 
 // Time travel status flags etc.
 static bool          TTSeqActive = false;
@@ -334,7 +330,7 @@ static void rem_request_status();
 
 static void switch_opMode(int previousMode);
 
-static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur = 0);
+static void timeTravel(uint16_t P0Dur, uint16_t P1Dur = 0);
 
 static void handleRemoteCommand();
 static int  execute(bool injected);
@@ -452,7 +448,7 @@ void main_setup()
     if(check_allow_CPA()) {
         showWaitSequence();
         if(prepareCopyAudioFiles()) {
-            play_file("/_installing.mp3", PA_ALLOWSD, 1.0f);
+            play_file("/_installing.mp3", PA_ALLOWSD);
             waitAudioDone();
         }
         doCopyAudioFiles();
@@ -624,9 +620,6 @@ void main_loop()
                 flushDelayedSave();
 
                 triggerUpdatePLEDs = false;
-    
-                doPrepareTT = false;
-                doWakeup = false;
 
                 mp_sendStatus();
 
@@ -662,22 +655,6 @@ void main_loop()
     }
     
     fade_loop();
-    
-    // Eval flags set in handle_tcd_notification
-    /*
-    if(doPrepareTT) {
-        if(!(csf & (CSF_OFF|CSF_TT))) {
-            prepareTT();
-        }
-        doPrepareTT = false;
-    }
-    if(doWakeup) {
-        if(!(csf & (CSF_OFF|CSF_TT))) {
-            wakeup();
-        }
-        doWakeup = false;
-    }
-    */
 
     // Execute commands from TCD/MQTT
     handleRemoteCommand();
@@ -736,7 +713,7 @@ void main_loop()
         if(newVolume) {
             newVolume = 0;
             if(!mpActive && !st_active() && checkAudioDone()) {
-                play_file("/volchg.mp3", PA_VOLCHG|PA_ALLOWSD|PA_DYNVOL, 1.0f); // not PA_CHECKNM!
+                play_file("/volchg.mp3", PA_VOLCHG|PA_ALLOWSD|PA_DYNVOL); // not PA_CHECKNM!
             }
         }
 
@@ -920,63 +897,49 @@ void main_loop()
             }
         }
 
-        // TT evaluation
-        if(!(csf & CSF_TT)) {
-            // Check for BTTFN/MQTT-induced TT
-            if(networkTimeTravel) {
-                networkTimeTravel = false;
-                if(!networkAbort && !ignoreTT) {
-                    timeTravel(networkTCDTT, networkLead, networkP1);
-                }
+    }
+
+    // Check for BTTFN/MQTT-induced TT
+    if(networkTimeTravel) {
+        networkTimeTravel = false;
+        if(!(csf & (CSF_TT|CSF_OFF))) {
+            if(!networkAbort && !ignoreTT) {
+                timeTravel(networkLead, networkP1);
             }
         }
-
     }
 
     now = millis();
 
     // The time travel sequence
-    
     if(csf & CSF_TT) {
-
-        if(csf & CSF_TTP0) {   // Acceleration - runs for ETTO_LEAD ms by default
-
-            if(networkAbort || (now - TTstart > P0duration)) {
-
+        if(csf & CSF_TTP0) {
+            if(now - TTstart > P0duration) {
                 csf &= ~CSF_TTP0;
                 csf |= CSF_TTP1;
                 TTstart = now;
-                
-                if(!networkAbort) {
-                    TTSeqActive = true;
-                    bluelight(1, 1);
-                    toplights(0, 1);
-                }
+                TTSeqActive = true;
+                bluelight(1, 1);
+                toplights(0, 1);
+            } else if(networkAbort) {
+                csf &= ~(CSF_TT|CSF_TTP0);
             }
         }
-        if(csf & CSF_TTP1) {   // Peak/"time tunnel" - ends with pin going LOW or BTTFN/MQTT "REENTRY" (or a long timeout)
-
-            if(((networkTCDTT && (networkReentry || networkAbort))) ||
+        if(csf & CSF_TTP1) {
+            if(((networkReentry || networkAbort)) ||
                 (now - TTstart >  P1_maxtimeout)) {
-
                 csf &= ~CSF_TTP1;
                 csf |= CSF_TTP2;
                 TTstart = now;
             }
-                
         }
-        if(csf & CSF_TTP2) {   // Reentry - up to us
-
-            if(now - TTstart > 1000) {
-              
+        if(csf & CSF_TTP2) {
+            if(networkAbort || (now - TTstart > 1000)) {
                 csf &= ~(CSF_TT|CSF_TTP2);
-
                 TTSeqActive = false;
-                
                 bluelight(0, 1);
                 toplights(1, 1);
             }
-            
         }
     }
 
@@ -1025,7 +988,7 @@ void main_loop()
         networkAlarm = false;
         jbLED.specialSignal(JBSEQ_ALARM);
         if(evalBool(settings.playALsnd) && checkAudioDone()) {
-            play_file("/alarm.mp3", PA_ALLOWSD|PA_DYNVOL, 1.0f);
+            play_file("/alarm.mp3", PA_ALLOWSD|PA_DYNVOL);
         }
     }
     
@@ -1374,7 +1337,7 @@ static void switch_opMode(int prevOpMode)
  * Time travel, sort of
  */
 
-static void timeTravel(bool TCDtriggered, uint16_t P0Dur, uint16_t P1Dur)
+static void timeTravel(uint16_t P0Dur, uint16_t P1Dur)
 {    
     if(csf & CSF_TT)
         return;
@@ -1504,7 +1467,7 @@ static void say_ip_address()
     }
     segList[0] = j - 1;
 
-    play_file((const char *)segList, PA_SCSEGS, 1.0);
+    play_file((const char *)segList, PA_SCSEGS);
 
     waitAudioDone();
     waitAudioDone();
@@ -2228,7 +2191,7 @@ static void play_nomusic()
 
 static void play_startup()
 {   
-    play_file("/startup.mp3", PA_INTRMUS|PA_ALLOWSD, 1.0f);
+    play_file("/startup.mp3", PA_INTRMUS|PA_ALLOWSD);
 
     pLEDs.setLEDs(-1, -1);
     pLEDs.onOff(1);
@@ -2310,14 +2273,19 @@ static void toplights(int onOff, int useFader)
     }
 }
 
-void allOff()
+void lightsAndButtonsOff()
 {
-    jbLED.specialSignal(0);
     pLEDs.onOff(0);
     toplights(0, 0);
     digitalWrite(BLUELIGHT_PIN, LOW);
     blueLED.setDC(0);
     blueFade = 0;
+}
+
+void allOff()
+{
+    jbLED.specialSignal(0);
+    lightsAndButtonsOff();
 }
 
 static void nightmode(bool onOff)
@@ -2687,16 +2655,6 @@ static void jbButtonEventHandler(int idx, ButtonState bstate)
     }
 }
 
-void prepareTT()
-{
-    doPrepareTT = false;
-}
-
-void wakeup()
-{
-    doWakeup = false;
-}
-
 static void volWasChanged()
 {
     re_vol_reset();
@@ -2969,35 +2927,27 @@ static void handle_tcd_notification(uint8_t *buf)
     case BTTFN_NOT_SPD:
         break;
     case BTTFN_NOT_PREPARE:
-        // Prepare for TT. Comes at some undefined point,
-        // an undefined time before the actual tt, and
-        // may not come at all.
-        // We disable our Screen Saver and start the flux
-        // sound (if to be played)
-        // We don't ignore this if TCD is connected by wire,
-        // because this signal does not come via wire.
-        doPrepareTT = true;
         break;
     case BTTFN_NOT_TT:
         // Trigger Time Travel (if not running already)
         if(!(csf & (CSF_TT|CSF_BUSY))) {
             networkTimeTravel = true;
-            networkTCDTT = true;
-            networkReentry = false;
-            networkAbort = false;
+            networkReentry = networkAbort = false;
             networkLead = buf[6] | (buf[7] << 8);
             networkP1 = buf[8] | (buf[9] << 8);
         }
         break;
     case BTTFN_NOT_REENTRY:
         // Start re-entry (if TT currently running)
-        if(((csf & CSF_TT) || networkTimeTravel) && networkTCDTT) {
+        if(csf & CSF_TT) {
             networkReentry = true;
+        } else {
+            networkTimeTravel = false;
         }
         break;
     case BTTFN_NOT_ABORT_TT:
         // Abort TT (if TT currently running)
-        if(((csf & CSF_TT) || networkTimeTravel) && networkTCDTT) {
+        if((csf & CSF_TT) || networkTimeTravel) {
             networkAbort = true;
         }
         break;
@@ -3010,7 +2960,6 @@ static void handle_tcd_notification(uint8_t *buf)
         }
         break;
     case BTTFN_NOT_WAKEUP:
-        doWakeup = true;
         break;
     case BTTFN_NOT_INFO:
         {

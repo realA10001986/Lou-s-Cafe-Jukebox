@@ -70,6 +70,7 @@
 #define PA_VOLCHG  0x000080
 #define PA_KEYMASK 0x01ff00
 #define PA_STREAM  0x100000
+#define PA_DOID3TS 0x200000
 #define PA_MASK    (PA_CHECKNM|PA_INTRMUS|PA_ALLOWSD|PA_DYNVOL|PA_LOOP)
 
 void    audio_setup();

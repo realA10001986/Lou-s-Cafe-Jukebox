@@ -1428,6 +1428,7 @@ static void preUpdateCallback()
 
     flushDelayedSave();
 
+    lightsAndButtonsOff();
     showWaitSequence();
 }
 
@@ -2602,24 +2603,12 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
 
         switch(i) {
         case 0:
-            // Prepare for TT. Comes at some undefined point,
-            // an undefined time before the actual tt, and may
-            // now come at all.
-            // We disable our Screen Saver and start the flux
-            // sound (if to be played)
-            // We don't ignore this if TCD is connected by wire,
-            // because this signal does not come via wire.
-            if(csf & CSF_OFF) return;
-            doPrepareTT = true;
             break;
         case 1:
             // Trigger Time Travel (if not running already)
-            // Ignore command if TCD is connected by wire
             if(!(csf & (CSF_OFF|CSF_TT|CSF_BUSY))) {
                 networkTimeTravel = true;
-                networkTCDTT = true;
-                networkReentry = false;
-                networkAbort = false;
+                networkReentry = networkAbort = false;
                 if(strlen(tempBuf) == 20) {
                     networkLead = a2i(&tempBuf[11]);
                     networkP1 = a2i(&tempBuf[16]);
@@ -2631,12 +2620,16 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
             break;
         case 2:   // Re-entry
             // Start re-entry (if TT currently running)
-            if((csf & CSF_TT) && networkTCDTT && (!(csf & CSF_OFF))) {
-                networkReentry = true;
+            if(!(csf & CSF_OFF)) {
+                if(csf & CSF_TT) {
+                    networkReentry = true;
+                } else {
+                    networkTimeTravel = false;
+                }
             }
             break;
         case 3:   // Abort TT (TCD fake-powered down during TT)
-            if((csf & CSF_TT) && networkTCDTT && (!(csf & CSF_OFF))) {
+            if(((csf & CSF_TT) || networkTimeTravel) && (!(csf & CSF_OFF))) {
                 networkAbort = true;
             }
             break;
@@ -2645,8 +2638,6 @@ static void mqttCallback(char *topic, byte *payload, unsigned int length)
             // Eval this at our convenience
             break;
         case 5:
-            if(csf & CSF_OFF) return;
-            doWakeup = true;
             break;
         }
        

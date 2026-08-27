@@ -140,6 +140,9 @@
 
 /*  Changelog
  *  
+ *  2026/08/26 (A10001986) [1.05]
+ *    - New sound pack (JB03)
+ *    - Various code cleanups
  *  2026/08/13 (A10001986) [1.04]
  *    - New sound pack (JB02)
  *    - Unmute audio if muted while speaking IP address

@@ -70,6 +70,7 @@ void showWaitSequence();
 void endWaitSequence();
 void showCopyError();
 
+void lightsAndButtonsOff();
 void allOff();
 void prepareReboot();
 
@@ -91,9 +92,6 @@ void  mqttFakePowerOff();
 
 void mydelay(unsigned long mydel);
 unsigned long millisNonZero();
-
-void prepareTT();
-void wakeup();
 
 void addCmdQueue(uint32_t command);
 void bttfn_loop();
@@ -124,7 +122,7 @@ extern bool remIncI;
 extern unsigned long powerupMillis;
 
 #define CSF_NM         0x00000001    // DO NOT CHANGE - MUST MATCH BTTFN BITS. Night mode
-#define CSF_OFF        0x00000002    // DO NOT CHANGE - MUST MATCH BTTFN BITS. Night mode
+#define CSF_OFF        0x00000002    // DO NOT CHANGE - MUST MATCH BTTFN BITS. Off
 #define CSF_NS         0x00000020
 #define CSF_NOMUSIC    0x00000100
 #define CSF_MQTTPM     0x00001000
@@ -140,15 +138,11 @@ extern unsigned long powerupMillis;
 extern uint32_t csf;
 
 extern bool networkTimeTravel;
-extern bool networkTCDTT;
 extern bool networkReentry;
 extern bool networkAbort;
 extern bool networkAlarm;
 extern uint16_t networkLead;
 extern uint16_t networkP1;
-
-extern bool doPrepareTT;
-extern bool doWakeup;
 
 extern bool showUpdAvail;
 
