@@ -339,14 +339,14 @@ The Jukebox can be controlled through messages sent to topic bttf/_hostname_/cmd
 - ```MODE_MP```: Switch to Music Player mode
 - ```MODE_STREAM```: Switch to streaming mode
 - ```MODE_REMOTE```: Switch to Remote Mode
-- ```PLAY```: Start the Music Player or streaming, or send a "play" command to the remote controlled music player
-- ```STOP```: Stop the Music Player or streaming, or send a "stop" command to the remote controlled music player
-- ```NEXT```: Jump to next track/stream, or send a "next" command to the remote controlled music player
-- ```PREV```: Jump to previous track/stream, or send a "previous" command to the remote controlled music player
-- ```SHUFFLE_ON```: Enables shuffle mode for Music Player or the remote controlled music player
-- ```SHUFFLE_OFF```: Disables shuffle mode for Music Player or the remote controlled music player
+- ```PLAY```: Start the Music Player or streaming, or send a "play" command to the [remote controlled](#settings-for-remote-mode) music player
+- ```STOP```: Stop the Music Player or streaming, or send a "stop" command to the [remote controlled](#settings-for-remote-mode) music player
+- ```NEXT```: Jump to next track/stream, or send a "next" command to the [remote controlled](#settings-for-remote-mode) music player
+- ```PREV```: Jump to previous track/stream, or send a "previous" command to the [remote controlled](#settings-for-remote-mode) music player
+- ```SHUFFLE_ON```: Enables shuffle mode for Music Player or the [remote controlled](#settings-for-remote-mode) music player
+- ```SHUFFLE_OFF```: Disables shuffle mode for Music Player or the [remote controlled](#settings-for-remote-mode) music player
 - ```FOLDER_x```: Set folder for Music Player (x=```A```-```K``` [I is skipped] or ```0```-```9```; for example ```FOLDER_F``` or ```FOLDER_7```)
-- ```GOTO_x-y```: Goto track/stream x-y (x=```A```-```K```, y=```1```-```10```; for example ```GOTO_A-10```), or send "goto" command to remote controlled music player
+- ```GOTO_x-y```: Goto track/stream x-y (x=```A```-```K```, y=```1```-```10```; for example ```GOTO_A-10```), or send "goto" command to [remote controlled](#settings-for-remote-mode) music player
 - ```VOLUME_SET_x```: Set audio volume to x% (0-100).
 - ```VOLUME_UP```, ```VOLUME:DOWN```: Increase/decrease audio volume a notch.
 - ```POWER_CONTROL_ON```: Take over Fake-Power control; POWER_xx commands now control Fake-Power.
