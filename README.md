@@ -757,7 +757,7 @@ The red light at the top is used for the following signals:
      <td align="left">OK</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_nomus.png"><!--1 second lit<-->/td>
+     <td align="left"><img src="img/s_nomus.png"><!--1 second lit--></td>
      <td align="left">No music available to play; no stream; no music on remote player</td>
     </tr>
     <tr>
