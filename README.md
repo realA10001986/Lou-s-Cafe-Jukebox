@@ -729,51 +729,51 @@ The red light at the top is used for the following signals:
      <td align="left">Busy, please wait</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_mp.png"><!--1 flash of 300ms--></td>
+     <td align="left"><img src="img/s_mp.png" title="1 flash of 300ms"><!--1 flash of 300ms--></td>
      <td align="left">Music Player mode. Shown on startup and on mode changes.</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_st.png"><!--2 flashes of 300ms--></td>
+     <td align="left"><img src="img/s_st.png" title="2 flashes of 300ms"><!--2 flashes of 300ms--></td>
      <td align="left">Streaming mode. Shown on startup and on mode changes.</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_rem.png"><!--3 flashes of 300ms--></td>
+     <td align="left"><img src="img/s_rem.png" title="3 flashes of 300ms"><!--3 flashes of 300ms--></td>
      <td align="left">Remote mode. Shown on startup and on mode changes.</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_alm.png"><!--4 blinks, 1 second each--></td>
+     <td align="left"><img src="img/s_alm.png" title="4 blinks, 1 second each"><!--4 blinks, 1 second each--></td>
      <td align="left"><a href="#bttf-network-bttfn">Alarm</a> (from TCD via BTTFN/MQTT)</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_sos.png"><!--3 long blinks, 3 short blinks, 3 long blinks (SOS in morse)--></td>
+     <td align="left"><img src="img/s_sos.png" title="3 long blinks, 3 short blinks, 3 long blinks (SOS in morse)"><!--3 long blinks, 3 short blinks, 3 long blinks (SOS in morse)--></td>
      <td align="left">Error: Sound pack <a href="#sound-pack-installation">not installed</a> or outdated. Shown briefly at power-up.</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_err.png"><!--2 brief blinks, 1 second pause, repeat--></td>
+     <td align="left"><img src="img/s_err.png" title="2 brief blinks, 1 second pause, repeat"><!--2 brief blinks, 1 second pause, repeat--></td>
      <td align="left">Error: Sound pack installation error</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_ok.png"><!--1 brief blink--></td>
+     <td align="left"><img src="img/s_ok.png" title="1 brief blink"><!--1 brief blink--></td>
      <td align="left">OK</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_nomus.png"><!--1 second lit--></td>
+     <td align="left"><img src="img/s_nomus.png" title="1 second lit"><!--1 second lit--></td>
      <td align="left">No music available to play; no stream; no music on remote player</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_shoff.png"><!--1 second lit, 1 short blink--></td>
+     <td align="left"><img src="img/s_shoff.png" title="1 second lit, 1 short blink"><!--1 second lit, 1 short blink--></td>
      <td align="left">Shuffle mode is off. Shown upon toggling shuffle mode</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_shon.png"><!--1 second lit, 2 short blinks--></td>
+     <td align="left"><img src="img/s_shon.png" title="1 second lit, 2 short blinks"><!--1 second lit, 2 short blinks--></td>
      <td align="left">Shuffle mode is on. Shown upon toggling shuffle mode</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_ipdel.png"><!--Continuous very brief blinks--></td>
+     <td align="left"><img src="img/s_ipdel.png" title="Continuous very brief blinks"><!--Continuous very brief blinks--></td>
      <td align="left">Warning that keeping the button held will delete static IP and AP-PW</td>
     </tr>
     <tr>
-     <td align="left"><img src="img/s_upd.png"><!--6 very quick blinks--></td>
+     <td align="left"><img src="img/s_upd.png" title="6 very quick blinks"><!--6 very quick blinks--></td>
      <td align="left">Firmware update available. Shown briefly at power-up.</td>
     </tr>
 </table>
