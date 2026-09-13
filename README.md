@@ -726,19 +726,19 @@ The red light at the top is used for the following signals:
 <table>
     <tr>
      <td align="left"><img src="img/s_wait.png"><!--Blinking at 2Hz--></td>
-     <td align="left">Please wait, busy</td>
+     <td align="left">Busy, please wait</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_mp.png"><!--1 flash of 300ms--></td>
-     <td align="left">Music Player mode. Shown on startup and on mode changes</td>
+     <td align="left">Music Player mode. Shown on startup and on mode changes.</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_st.png"><!--2 flashes of 300ms--></td>
-     <td align="left">Streaming mode. Shown on startup and on mode changes</td>
+     <td align="left">Streaming mode. Shown on startup and on mode changes.</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_rem.png"><!--3 flashes of 300ms--></td>
-     <td align="left">Remote mode. Shown on startup and on mode changes</td>
+     <td align="left">Remote mode. Shown on startup and on mode changes.</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_alm.png"><!--4 blinks, 1 second each--></td>
@@ -762,11 +762,11 @@ The red light at the top is used for the following signals:
     </tr>
     <tr>
      <td align="left"><img src="img/s_shoff.png"><!--1 second lit, 1 short blink--></td>
-     <td align="left">Shuffle mode is off, shown upon toggling shuffle mode</td>
+     <td align="left">Shuffle mode is off. Shown upon toggling shuffle mode</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_shon.png"><!--1 second lit, 2 short blinks--></td>
-     <td align="left">Shuffle mode is on, shown upon toggling shuffle mode</td>
+     <td align="left">Shuffle mode is on. Shown upon toggling shuffle mode</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_ipdel.png"><!--Continuous very brief blinks--></td>
@@ -774,7 +774,7 @@ The red light at the top is used for the following signals:
     </tr>
     <tr>
      <td align="left"><img src="img/s_upd.png"><!--6 very quick blinks--></td>
-     <td align="left">Firmware update available; shown briefly at power-up (optional)</td>
+     <td align="left">Firmware update available; shown briefly at power-up</td>
     </tr>
 </table>
 
