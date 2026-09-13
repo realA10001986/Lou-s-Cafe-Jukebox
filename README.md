@@ -750,7 +750,7 @@ The red light at the top is used for the following signals:
     </tr>
     <tr>
      <td align="left"><img src="img/s_err.png"><!--2 brief blinks, 1 second pause, repeat--></td>
-     <td align="left">Error</td>
+     <td align="left">Error: Sound pack installation error</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_ok.png"><!--1 brief blink--></td>
