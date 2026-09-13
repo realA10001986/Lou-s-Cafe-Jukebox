@@ -150,7 +150,7 @@ Bottom knob ("Jog dial 2"):
   - The current folder is displayed in the panel (A-K, 1-10)
   - Turning the knob allows changing the music folder. Only folders that actually exist and contain music files can be selected.
   - Pressing the knob again selects the currently lit folder and finalizes folder selection. 
-- Holding the knob down for 5 seconds deletes the static IP and WiFi AP password and, in case either was set, reboots; the top red light starts blinking after 2 seconds to warn
+- Holding the knob down for 5 seconds deletes the static IP and WiFi AP password and, in case either was set, reboots; the top red light starts blinking after 2 seconds to warn.
 
 [Here](CheatSheet.pdf) is a cheat sheet for printing or screen-use.
 
