@@ -742,7 +742,7 @@ The red light at the top is used for the following signals:
     </tr>
     <tr>
      <td align="left"><img src="img/s_alm.png"><!--4 blinks, 1 second each--></td>
-     <td align="left"><a href="#receive-commands-from-time-circuits-display">Alarm</a> (from TCD via BTTFN/MQTT)</td>
+     <td align="left"><a href="#bttf-network-bttfn">Alarm</a> (from TCD via BTTFN/MQTT)</td>
     </tr>
     <tr>
      <td align="left"><img src="img/s_sos.png"><!--3 long blinks, 3 short blinks, 3 long blinks (SOS in morse)--></td>
