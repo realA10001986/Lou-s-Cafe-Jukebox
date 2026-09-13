@@ -156,7 +156,10 @@ Bottom knob ("Jog dial 2"):
 
 ## Mode 1: Music Player
 
-The Music Player plays mp3 files located on the SD card. *The maximum bitrate is 128kpbs.* An excellent utility to re-encode your MP3 files in batches is [Adapter](https://macroplant.com/adapter/audio-converter), available for Mac and Windows.
+The Music Player plays mp3 files located on the SD card. 
+
+> [!NOTE]
+> The maximum mp3 bitrate is __128kpbs__. An excellent utility to re-encode your MP3 files in batches is [Adapter](https://macroplant.com/adapter/audio-converter), available for Mac and Windows.
 
 To be recognized, your mp3 files need to be organized in music folders named *musicA* through *musicK* and *music1* through *music10*. The default folder number is musicA. The folder can be changed using the jog dial 2 as described above.
 
