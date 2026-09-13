@@ -725,7 +725,7 @@ The red light at the top is used for the following signals:
 
 <table>
     <tr>
-     <td align="left"><img src="img/s_wait.png"><!--Blinking at 2Hz--></td>
+     <td align="left"><img src="img/s_wait.png" title="Blinking at 2Hz"><!--Blinking at 2Hz--></td>
      <td align="left">Busy, please wait</td>
     </tr>
     <tr>
