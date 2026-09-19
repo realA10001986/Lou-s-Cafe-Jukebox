@@ -532,9 +532,9 @@ If this option is checked, the Jukebox will will turn on the blue light in Night
 
 #### <ins>Settings for BTTFN communication</ins>
 
-##### &#9193; Hostname or IP address of TCD
+##### &#9193; Hostname of TCD
 
-If you want to have your Jukebox to communicate with a Time Circuits Display wirelessly ("BTTF-Network"), enter the TCD's hostname - usually 'timecircuits' - or IP address here. Hostname is preferred because it makes the setup independent of the network environment.
+If you want to have your Jukebox to communicate with a Time Circuits Display wirelessly ("BTTF-Network"), enter the TCD's hostname - usually 'timecircuits' - here. Although specifying the TCD's IP address is supported as well, the hostname is preferred because it makes your setup independent of the network environment.
 
 ##### &#9193; Follow TCD night-mode
 
