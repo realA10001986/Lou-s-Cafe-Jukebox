@@ -35,6 +35,7 @@ To have [JCLPCB](https://jlcpcb.com) make your Control Board:
 - XH connector on back of PCB: 1x XH-4AWD connector (LCSC part number C8877); this is for connecting the Panel LEDs.
 - XH 4pin cable to connect the Jog Dials.
 - XH 4pin cable to connect the signal LED and LEDs for illumination.
+- PH 2pin cable to connect the original speaker to the Control Board.
 - the ability to solder through-the-hole parts, and the required tools.
 
 
