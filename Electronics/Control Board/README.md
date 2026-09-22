@@ -10,7 +10,7 @@ It has connectors for
 - jog dials (XH4, front; labeled "Pushwheels")
 - panel LEDs (XH-4AWD, rear)
 - speaker for audio (PH 2pin)
-- (Timetravel: Unused; the bottom right 4-pin connector is not required)
+- (The bottom right 4-pin connector is not required)
 
 To have [JCLPCB](https://jlcpcb.com) make your Control Board:
 1) Create an account at jlcpcb.com
@@ -31,9 +31,8 @@ To have [JCLPCB](https://jlcpcb.com) make your Control Board:
 #### You additionally need:
 - 1x NodeMCU ESP32 devboard, preferably with CP2102 USB-to-UART converter. 38pin, 25mm wide. [Specs](https://wiki.geekworm.com/NodeMCU-32S)
 - If out of stock at JLCPCB: 2x 19pin femals headers, 8.5mm high, 2.54mm pitch (LCSC part number C7509529 or C2932678). If you can't get them for exactly 19 pins, get some longer ones and cut them.
-- Screw terminals and XH connector on the back of the Control Board:
-  - 2x DG308-2.54-02P-14-00A(H) (LCSC part number C699496) (or [any other](https://www.mouser.com/ProductDetail/Amphenol-Anytek/VN02A1500000G?qs=Mv7BduZupUgf8d3Xo6xdxw%3D%3D); 2.54mm pitch, 2 pins) for 5V and 12V connectors;
-  - 1x XH-4AWD connector (LCSC part number C8877); this is for connecting the Panel LEDs.
+- Screw terminals: 2x DG308-2.54-02P-14-00A(H) (LCSC part number C699496) (or [any other](https://www.mouser.com/ProductDetail/Amphenol-Anytek/VN02A1500000G?qs=Mv7BduZupUgf8d3Xo6xdxw%3D%3D); 2.54mm pitch, 2 pins) for 5V and 12V connectors;
+- XH connector on back of PCB: 1x XH-4AWD connector (LCSC part number C8877); this is for connecting the Panel LEDs.
 - XH 4pin cable to connect the Jog Dials.
 - XH 4pin cable to connect the signal LED and LEDs for illumination.
 - the ability to solder through-the-hole parts, and the required tools.
