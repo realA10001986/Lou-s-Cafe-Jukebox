@@ -542,7 +542,7 @@ If this option is checked, the Jukebox will ignore time travels on the TCD. If u
 
 _Please leave this option checked. It is safe to have this option checked even with no SD card present._
 
-If this is checked, some settings are stored on the SD card. This helps to minimize write operations to the internal flash memory and to prolong the lifetime of your Jukebox. Apart from Flash Wear, there is another reason for using an SD card for settings: Writing data to internal flash memory can cause delays of up to 1.5 seconds, which interrupt sound playback and have other undesired effects. The Jukebox needs to save data from time to time, so for a smooth experience without unexpected and unwanted delays, please use an SD card and check this option.
+If this is checked, some settings are stored on the SD card. This helps to minimize write operations to the internal flash memory and to prolong the lifetime of your Jukebox. Apart from Flash Wear, there is another reason for using an SD card for settings: The Jukebox needs to save data from time to time. Writing data to internal flash memory can cause delays of up to 1.5 seconds, which interrupt sound playback and have other undesired effects.
 
 If you want copy settings from one SD card to another, do as follows:
 - With the old SD card still in the slot, enter the Config Portal, turn off _Save secondary settings on SD_, and click "SAVE".
