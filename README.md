@@ -181,7 +181,7 @@ musicX/K-10_xxxx.mp3 <br />
 
 >When the firmware finds a fresh music folder, it sorts the files alphabetically and renames them to an internally used format which has audio files named 000.mp3 through 099.mp3.
 
-You can also add files to a music folder later; when you do so, delete the file "TCD_DONE.TXT" from the music folder on the SD card so that the firmware knows that something has changed. The new files will be added in alphabetical order.
+To add files to a music folder later, just copy them to the folder and delete the corresponding cache file "musicXc" located in the top-most folder. That way that the firmware knows that something has changed and will re-examine the folder. The new files will be added in alphabetical order.
 
 By default, the tracks are played in order, starting at A-1, followed by A-2 and so on. By holding jog dial 1 you can toggle shuffle mode, in which mode the tracks are played in random order. Shuffle mode is saved and persistent.
 
