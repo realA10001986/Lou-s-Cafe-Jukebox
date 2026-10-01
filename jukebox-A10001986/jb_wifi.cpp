@@ -58,10 +58,6 @@
 
 #include "src/WiFiManager/WiFiManager.h"
 
-#ifndef WM_MDNS
-#define TC_MDNS
-#include <ESPmDNS.h>
-#endif
 #include "jb_main.h"
 #include "jb_audio.h"
 #include "jb_settings.h"
@@ -99,11 +95,15 @@ static const char *acul_errs[]  = {
     "Extraneous .bin file"
 };
 
-static const char tcdList[] = "<datalist id='tcda'><option value='TCD-AP%s'></option></datalist><datalist id='hnl'><option value='flux'></option></datalist>";
+#ifdef WM_CCM
+static const char tcdList[] = "<datalist id='tcda'><option value='TCD-AP%s'></option></datalist>";
 
-static const char tcdSSIDp[] = "<div style='margin:0 0 10px 0;padding:0;font-size:80%%'>SSID of currently connected TCD is <b>TCD-AP%s</b> (%s password)</div>";
+static const char tcdSSID0[] = "<div style='margin:0 0 10px 0;padding:0;font-size:80%'>";
+static const char tcdSSIDp[] = "%sSSID of currently connected TCD is <b>TCD-AP%s</b></div>";
+static const char tcdSSIDq[] = "%sCurrently connected TCD has %s password configured</div>";
 static const char tcdAPPW1[] = "no";
-static const char tcdAPPW2[] = "with";
+static const char tcdAPPW2[] = "a";
+#endif
 
 static const char *apChannelCustHTMLSrc[14] = {
     "'>WiFi channel",
@@ -142,6 +142,7 @@ static const char msgResolvErr[] = "DNS lookup error";    // MQTT
 
 static const char *wmBuildTCDAPList(const char *dest, int op);
 static const char *wmBuildTCDSSID(const char *dest, int op);
+static const char *wmBuildTCDPW(const char *dest, int op);
 static const char *wmBuildApChnl(const char *dest, int op);
 static const char *wmBuildBestApChnl(const char *dest, int op);
 static const char *wmBuildHaveSD(const char *dest, int op);
@@ -169,59 +170,52 @@ static const char bestAP[]   = "%s%s%sProposed channel at current location: %d<b
 static const char badWiFi[]  = "<br><i>Operating in AP mode not recommended</i>";
 
 static const char bannerGen[] = "%s%s%s<i>%s</i></div>";
-static const char ntpOFF[] = "NTP is inactive";
-static const char ntpUNR[] = "NTP server is unresponsive";
 static const char haveNoSD[] = "No SD card present";
 
 static const char mqttStatus[] = "%s%s%s%s%s (%d)</div>";
 
 // WiFi Configuration
+// If first parameter does not have SECTS or SECTS_HEAD set, the WiFi Connection settings section will be left open
+WiFiManagerParameter custom_wifiConRetries("Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
+
+WiFiManagerParameter custom_hostName("Hostname<br><span>Your Jukebox's network ID. Used for the Config Portal URL and HA/MQTT.<br>Config Portal URL: http://<i>hostname</i>.local<br>Valid characters: a-z/0-9/-</span>", settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='" DEF_HOSTNAME "'", WFM_SECTS|WFM_LABEL_BEFORE);
 
 #ifdef WM_CCM
 WiFiManagerParameter custom_asel(wmBuildTCDAPList);
 
-WiFiManagerParameter custom_sectstart_cm("Car mode settings", WFM_SECTS_HEAD|WFM_HL);
+WiFiManagerParameter custom_sectstart_cm("Car mode settings", WFM_SECTS|WFM_HL);
 WiFiManagerParameter custom_cmhint("<div style='margin:0 0 10px 0;padding:0;font-size:80%;white-space:break-spaces;'>In Car mode, the device connects to the TCD's access point instead of the WiFi network configured above.</div>");
-WiFiManagerParameter custom_ssidcm("ssidcm", "Network name (SSID) of TCD-AP", settings.cm_ssid, 13, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: TCD-AP' list='tcda'");
-WiFiManagerParameter custom_passcm("passcm", "Password for TCD-AP", settings.cm_pass, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_ssidcm("Network name (SSID) of TCD-AP", settings.cm_ssid, 13, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: TCD-AP' list='tcda'");
 WiFiManagerParameter custom_tcdssid(wmBuildTCDSSID);
-WiFiManagerParameter custom_bssidcm("bsidcm", "TCD-AP BSSID (optional)", settings.cm_bssid, 17, "pattern='^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$' placeholder='XX:XX:XX:XX:XX:XX'");
-WiFiManagerParameter custom_ecm("ecm", "Enable Car Mode", settings.ecmKludge, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_passcm("Password for TCD-AP", settings.cm_pass, 8, "minlength='8' pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_tcdpw(wmBuildTCDPW);
+WiFiManagerParameter custom_bssidcm("TCD-AP BSSID (optional)", settings.cm_bssid, 17, "pattern='^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$' placeholder='XX:XX:XX:XX:XX:XX'");
+WiFiManagerParameter custom_ecm("Enable Car Mode", settings.ecmKludge, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 #endif
 
-#if defined(TC_MDNS) || defined(WM_MDNS)
-#define HNTEXT "Hostname<br><span>The Config Portal is accessible at http://<i>hostname</i>.local<br>[Valid characters: a-z/0-9/-]</span>"
-#else
-#define HNTEXT "Hostname<br><span>(Valid characters: a-z/0-9/-)</span>"
-#endif
-WiFiManagerParameter custom_hostName("hostname", HNTEXT, settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='Example: jb'", WFM_LABEL_BEFORE|WFM_SECTS_HEAD);
-
-WiFiManagerParameter custom_sectstart_wifi("WiFi connection: Other settings", WFM_SECTS|WFM_HL);
-WiFiManagerParameter custom_wifiConRetries("wifiret", "Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
-
-WiFiManagerParameter custom_sectstart_ap("Access point (AP) mode settings", WFM_SECTS|WFM_HL);
-WiFiManagerParameter custom_sysID("sysID", "Network name (SSID) appendix<br><span>Will be appended to \"JB-AP\" [a-z/0-9/-]</span>", settings.systemID, 7, "pattern='[A-Za-z0-9\\-]+'");
-WiFiManagerParameter custom_appw("appw", "Password<br><span>Password to protect JB-AP. Empty or 8 characters [a-z/0-9/-]</span>", settings.appw, 8, "minlength='8' pattern='[A-Za-z0-9\\-]{8}'");
+WiFiManagerParameter custom_sectstart_ap("Jukebox Access Point mode (JB-AP) settings", WFM_SECTS|WFM_HL);
+WiFiManagerParameter custom_sysID("Network name (SSID) appendix<br><span>Will be appended to \"JB-AP\" [a-z/0-9/-]</span>", settings.systemID, 7, "pattern='[A-Za-z0-9\\-]+'");
+WiFiManagerParameter custom_appw("Password<br><span>Password to protect JB-AP. Empty or 8 characters [a-z/0-9/-]</span>", settings.appw, 8, "minlength='8' pattern='[A-Za-z0-9\\-]{8}'");
 WiFiManagerParameter custom_apch(wmBuildApChnl);
 WiFiManagerParameter custom_bapch(wmBuildBestApChnl);
-WiFiManagerParameter custom_wifiAPOffDelay("wifiAPoff", "Power save timer<br><span>(10-99[minutes]; 0=off)</span>", settings.wifiAPOffDelay, 2, "type='number' min='0' max='99' title='WiFi-AP will be shut down after chosen period'");
-WiFiManagerParameter custom_wifihint("<div style='margin:0;padding:0;font-size:80%;white-space:break-spaces;'>Hold middle jog dial button while fake-off to re-enable Wifi when in power save mode.</div>", WFM_FOOT);
+WiFiManagerParameter custom_wifiAPOffDelay("Power save timer<br><span>(10-99[minutes]; 0=off)</span>", settings.wifiAPOffDelay, 2, "type='number' min='0' max='99' title='WiFi-AP will be shut down after chosen period'");
+WiFiManagerParameter custom_wifihint("<span style='white-space:normal;font-size:80%'>Hold middle jog dial button while fake-off to re-enable Wifi when in power save mode.</span>", WFM_FOOT);
 
 // Settings
 
-WiFiManagerParameter custom_playJBSnd("plyJB", "Play Jukebox sounds", settings.playJB, "title='Check to have the device play a sound then the TCD alarm sounds.'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
-WiFiManagerParameter custom_playALSnd("plyALS", "Play TCD-alarm sound", settings.playALsnd, "title='Check to have the device play a sound then the TCD alarm sounds.'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_NMB("NMB", "Turn on blue light in night mode", settings.NMB, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_playJBSnd("Play Jukebox sounds", settings.playJB, "title='Check to have the device play a sound then the TCD alarm sounds.'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
+WiFiManagerParameter custom_playALSnd("Play TCD-alarm sound", settings.playALsnd, "title='Check to have the device play a sound then the TCD alarm sounds.'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_NMB("Turn on blue light in night mode", settings.NMB, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
 WiFiManagerParameter custom_sectstart_nw("Wireless communication (BTTF-Network)", WFM_SECTS|WFM_HL);
-WiFiManagerParameter custom_tcdIP("tcdIP", "Hostname or IP address of TCD", settings.tcdIP, 31, "pattern='(^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$)|([A-Za-z0-9\\-]+)' placeholder='Example: timecircuits' list='tcdh'");
-WiFiManagerParameter custom_uNM("uNM", "Follow TCD night-mode", settings.useNM, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
-WiFiManagerParameter custom_ITT("ITT", "Ignore time travels", settings.ignTT, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_tcdIP("Hostname or IP address of TCD", settings.tcdIP, 31, "pattern='(^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$)|([A-Za-z0-9\\-]+)' placeholder='Example: timecircuits' list='tcdh'");
+WiFiManagerParameter custom_uNM("Follow TCD night-mode", settings.useNM, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_ITT("Ignore time travels", settings.ignTT, "class='mb0'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
 WiFiManagerParameter custom_haveSD(wmBuildHaveSD, WFM_SECTS);
-WiFiManagerParameter custom_CfgOnSD("CfgSD", "Save secondary settings on SD<br><span>Check this to avoid flash wear</span>", settings.CfgOnSD, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
+WiFiManagerParameter custom_CfgOnSD("Save secondary settings on SD<br><span>Check this to avoid flash wear</span>", settings.CfgOnSD, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX);
 
-WiFiManagerParameter custom_waitPwrOn("wpo", "Wait for fake-power-on upon boot", settings.waitForPower, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS|WFM_FOOT);
+WiFiManagerParameter custom_waitPwrOn("Wait for fake-power-on upon boot", settings.waitForPower, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS|WFM_FOOT);
 
 // Streaming settings
 
@@ -229,31 +223,31 @@ WiFiManagerParameter custom_streaming(wmBuildStreams);
 
 // HA/MQTT Settings
 
-WiFiManagerParameter custom_useMQTT("uMQTT", "Home Assistant support (MQTT)", settings.useMQTT, "class='mt5' style='margin-bottom:10px'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
+WiFiManagerParameter custom_useMQTT("Home Assistant support (MQTT)", settings.useMQTT, "class='mt5' style='margin-bottom:10px'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS_HEAD);
 WiFiManagerParameter custom_state(wmBuildMQTTstate);
-WiFiManagerParameter custom_mqttServer("MQs", "Broker IP[:port] or domain[:port]", settings.mqttServer, 79, "pattern='[a-zA-Z0-9\\.:\\-]+' placeholder='Example: 192.168.1.5'");
+WiFiManagerParameter custom_mqttServer("Broker IP[:port] or domain[:port]", settings.mqttServer, 79, "pattern='[a-zA-Z0-9\\.:\\-]+' placeholder='Example: 192.168.1.5'");
 WiFiManagerParameter custom_mqttVers(wmBuildMQTTprot);
-WiFiManagerParameter custom_mqttUser("MQu", "User[:Password]", settings.mqttUser, 63, "placeholder='Example: ronald:mySecret'");
+WiFiManagerParameter custom_mqttUser("User[:Password]", settings.mqttUser, 63, "placeholder='Example: ronald:mySecret'");
 
-WiFiManagerParameter custom_pubMP("pMP", "Publish Music Player status to bttf/<i>hostname</i>/mpstatus", settings.pubMP, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS);
+WiFiManagerParameter custom_pubMP("Publish Music Player status to bttf/<i>hostname</i>/mpstatus", settings.pubMP, "class='mt5'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS);
 
-WiFiManagerParameter custom_mqttPwr("MQp", "HA controls Fake-Power at startup", settings.mqttPwr, "class='mt5' title='Check to have HA control Fake-Power and take precendence over Fake-Power switch at power-up'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS);
-WiFiManagerParameter custom_mqttPwrOn("MQpo", "Wait for POWER_ON at startup", settings.mqttPwrOn, "class='mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_FOOT);
+WiFiManagerParameter custom_mqttPwr("HA controls Fake-Power at startup", settings.mqttPwr, "class='mt5' title='Check to have HA control Fake-Power and take precendence over Fake-Power switch at power-up'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_SECTS);
+WiFiManagerParameter custom_mqttPwrOn("Wait for POWER_ON at startup", settings.mqttPwrOn, "class='mt5 ml20'", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_FOOT);
 
 WiFiManagerParameter custom_mqtttm(wmBuildMQTTTM);
-WiFiManagerParameter custom_mqmpii("inclI", "Jukebox-style numbering includes letters 'I' and 'O'", settings.mqmpii, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_FOOT); // FOOT because topic leave section open
+WiFiManagerParameter custom_mqmpii("Jukebox-style numbering includes letters 'I' and 'O'", settings.mqmpii, "", WFM_LABEL_AFTER|WFM_IS_CHKBOX|WFM_FOOT); // FOOT because topic leave section open
 
 WiFiManagerParameter custom_sectstart_mqbc("Remote Player's backchannel", WFM_SECTS_HEAD|WFM_HL);
-WiFiManagerParameter custom_mqttMPBC("mqmpBC", "Backchannel MQTT topic", settings.mqmpbackchannel, 63, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCSK("mqmpBCSK", "JSON Key for state", settings.mqmpbc_state_key, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCSV("mqmpBCSV", "Value for state 'playing' (String)<br><span>Leave empty if 'playing' state is boolean</span>", settings.mqmpbc_state_val_play, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCSO("mqmpBCSO", "Value for state 'off' (String)", settings.mqmpbc_state_val_off, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCC("mqmpBCC", "JSON Key for current track", settings.mqmpbc_curTrack_key, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCF("mqmpBCF", "JSON Key for first track number (which can be 0 or 1)<br><span>If unsupported, enter \"=<i>value</i>\" to set</span>", settings.mqmpbc_firstTrack_key, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCL("mqmpBCL", "JSON Key for highest track number<br><span>If unsupported, enter \"=<i>value</i>\" to set</span>", settings.mqmpbc_lastTrack_key, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCV("mqmpBCV", "JSON Key for volume", settings.mqmpbc_volume_key, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCSHK("mqmpBCSHK", "JSON Key for shuffle mode", settings.mqmpbc_shuffle_key, 15, "", WFM_LABEL_BEFORE);
-WiFiManagerParameter custom_mqttMPBCSHV("mqmpBCSHV", "Value for 'shuffle on' (String)<br><span>Leave empty if shuffle is boolean</span>", settings.mqmpbc_shuffle_val_on, 15, "", WFM_LABEL_BEFORE|WFM_FOOT);
+WiFiManagerParameter custom_mqttMPBC("Backchannel MQTT topic", settings.mqmpbackchannel, 63, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCSK("JSON Key for state", settings.mqmpbc_state_key, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCSV("Value for state 'playing' (String)<br><span>Leave empty if 'playing' state is boolean</span>", settings.mqmpbc_state_val_play, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCSO("Value for state 'off' (String)", settings.mqmpbc_state_val_off, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCC("JSON Key for current track", settings.mqmpbc_curTrack_key, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCF("JSON Key for first track number (which can be 0 or 1)<br><span>If unsupported, enter \"=<i>value</i>\" to set</span>", settings.mqmpbc_firstTrack_key, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCL("JSON Key for highest track number<br><span>If unsupported, enter \"=<i>value</i>\" to set</span>", settings.mqmpbc_lastTrack_key, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCV("JSON Key for volume", settings.mqmpbc_volume_key, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCSHK("JSON Key for shuffle mode", settings.mqmpbc_shuffle_key, 15, "", WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_mqttMPBCSHV("Value for 'shuffle on' (String)<br><span>Leave empty if shuffle is boolean</span>", settings.mqmpbc_shuffle_val_on, 15, "", WFM_LABEL_BEFORE|WFM_FOOT);
 
 static const int8_t wifiMenu[] = { 
     WM_MENU_WIFI,
@@ -399,22 +393,22 @@ void wifi_setup()
 
     WiFiManagerParameter *wifiParmArray[] = {
 
+      &custom_wifiConRetries,
+
+      &custom_hostName,
+      
       #ifdef WM_CCM
       &custom_asel,
       
       &custom_sectstart_cm,
       &custom_cmhint,
       &custom_ssidcm,
-      &custom_passcm,
       &custom_tcdssid,
+      &custom_passcm,
+      &custom_tcdpw,
       &custom_bssidcm,
       &custom_ecm,
       #endif
-      
-      &custom_hostName,
-
-      &custom_sectstart_wifi,
-      &custom_wifiConRetries,
 
       &custom_sectstart_ap,
       &custom_sysID,
@@ -571,6 +565,8 @@ void wifi_setup()
         temp++;
     }
 
+    // WiFiParameters were initialized before settings were loaded.
+    // Update them to current values now.
     updateConfigPortalValues();
 
     useMQTT = evalBool(settings.useMQTT);
@@ -616,13 +612,6 @@ void wifi_setup()
            
     // Connect
     wifiConnect(true);
-
-    // MDNS. Needs to be called AFTER mode(STA) or softAP init
-    #ifdef TC_MDNS
-    if(MDNS.begin(settings.hostName)) {
-        MDNS.addService("http", "tcp", 80);
-    }
-    #endif
 
     checkForUpdate();
 
@@ -1433,20 +1422,17 @@ static void preUpdateCallback()
 }
 
 // This is called after a firmware updated has finished.
-// parm = true of ok, false if error. WM reboots only 
-// if the update worked, ie when res is true.
+// parm = true of ok, false if error.
 static void postUpdateCallback(bool res)
 {
     Serial.flush();
     prepareReboot();
 
-    // WM does not reboot on OTA update errors.
-    // However, our preparation destroyed too 
-    // much, so we reboot anyway.
-    if(!res) {
-        delay(1000);
-        esp_restart();
-    }
+    // WM sends a MDNS-good-bye and reboots after 
+    // this callback. Since we send the good-bye
+    // in prepareReboot(), no point in returning.
+    delay(1000);
+    esp_restart();
 }
 
 static bool preWiFiScanCallback()
@@ -1502,58 +1488,21 @@ static void setCMCallback(bool enable)
 }
 #endif
 
+// Use this only ahead of reboots.
+void wifiMDNSGoodBye()
+{
+    #ifdef WM_MDNS
+    wm.sendMDNSgoodBye();
+    #endif
+}
+
 static void updateConfigPortalValues()
 {
     // Make sure the settings form has the correct values
-
-    #ifdef WM_CCM
-    custom_ssidcm.setValue(settings.cm_ssid);
-    custom_passcm.setValue(settings.cm_pass);
-    custom_bssidcm.setValue(settings.cm_bssid);
-    #endif
-
-    custom_hostName.setValue(settings.hostName);
-    custom_wifiConRetries.setValue(settings.wifiConRetries);
-
-    custom_sysID.setValue(settings.systemID);
-    custom_appw.setValue(settings.appw);
-    // ap channel done on-the-fly
-    custom_wifiAPOffDelay.setValue(settings.wifiAPOffDelay);
-
-    setCBVal(&custom_playJBSnd, settings.playJB);
-    setCBVal(&custom_playALSnd, settings.playALsnd);
-    setCBVal(&custom_NMB, settings.NMB);
-
-    custom_tcdIP.setValue(settings.tcdIP);
-    setCBVal(&custom_uNM, settings.useNM);
-    setCBVal(&custom_ITT, settings.ignTT);
-
-    setCBVal(&custom_CfgOnSD, settings.CfgOnSD);
-
-    setCBVal(&custom_waitPwrOn, settings.waitForPower);
-
-    setCBVal(&custom_useMQTT, settings.useMQTT);
-    custom_mqttServer.setValue(settings.mqttServer);
-    // protocol version done on-the-fly
-    custom_mqttUser.setValue(settings.mqttUser);
-
-    setCBVal(&custom_pubMP, settings.pubMP);
-    
-    setCBVal(&custom_mqttPwr, settings.mqttPwr);
-    setCBVal(&custom_mqttPwrOn, settings.mqttPwrOn);
-
-    setCBVal(&custom_mqmpii, settings.mqmpii);
-
-    custom_mqttMPBC.setValue(settings.mqmpbackchannel);
-    custom_mqttMPBCSK.setValue(settings.mqmpbc_state_key);
-    custom_mqttMPBCSV.setValue(settings.mqmpbc_state_val_play);
-    custom_mqttMPBCSO.setValue(settings.mqmpbc_state_val_off);
-    custom_mqttMPBCC.setValue(settings.mqmpbc_curTrack_key);
-    custom_mqttMPBCF.setValue(settings.mqmpbc_firstTrack_key);
-    custom_mqttMPBCL.setValue(settings.mqmpbc_lastTrack_key);
-    custom_mqttMPBCV.setValue(settings.mqmpbc_volume_key);
-    custom_mqttMPBCSHK.setValue(settings.mqmpbc_shuffle_key);
-    custom_mqttMPBCSHV.setValue(settings.mqmpbc_shuffle_val_on);
+    wm.updateParameters(WM_PARM_WIFI);
+    wm.updateParameters(WM_PARM_SETTINGS);
+    wm.updateParameters(WM_PARM_SETTINGS2);
+    wm.updateParameters(WM_PARM_SETTINGS3);
 }
 
 static unsigned int calcSelectMenu(const char **theHTML, int cnt, char *setting, bool indent = false)
@@ -1651,7 +1600,7 @@ static const char *wmBuildTCDSSID(const char *dest, int op)
     if(!bttfnHaveTCDSSID)
         return NULL;
 
-    unsigned int l = STRLEN(tcdSSIDp) + (TCDpwMarker ? STRLEN(tcdAPPW2) : STRLEN(tcdAPPW1)) + 4;
+    unsigned int l = STRLEN(tcdSSIDp) + STRLEN(tcdSSID0) + 4;
     l += strlen(TCDSSID);
 
     if(op == WM_CP_LEN) {
@@ -1661,7 +1610,31 @@ static const char *wmBuildTCDSSID(const char *dest, int op)
 
     char *str = (char *)malloc(l);
 
-    sprintf(str, tcdSSIDp, TCDSSID, TCDpwMarker ? tcdAPPW2 : tcdAPPW1);
+    sprintf(str, tcdSSIDp, tcdSSID0, TCDSSID);
+
+    return str;
+}
+
+static const char *wmBuildTCDPW(const char *dest, int op)
+{
+    if(op == WM_CP_DESTROY) {
+        if(dest) free((void *)dest);
+        return NULL;
+    }
+
+    if(!bttfnHaveTCDSSID)
+        return NULL;
+
+    unsigned int l = STRLEN(tcdSSIDq) + STRLEN(tcdSSID0) + (TCDpwMarker ? STRLEN(tcdAPPW2) : STRLEN(tcdAPPW1)) + 4;
+
+    if(op == WM_CP_LEN) {
+        wmLenBuf = l;
+        return (const char *)&wmLenBuf;
+    }
+
+    char *str = (char *)malloc(l);
+
+    sprintf(str, tcdSSIDq, tcdSSID0, TCDpwMarker ? tcdAPPW2 : tcdAPPW1);
 
     return str;
 }
@@ -1730,7 +1703,7 @@ static const char *wmBuildStreams(const char *dest, int op)
         if(dest) free((void *)dest);
         return NULL;
     }
-    const char HTTP_SECT_HEAD[] = "<div class='ss'><div class='hl'>Streaming URLs<br><span style='font-size:80%'>Only http, content type \"audio/mpeg\" and bitrates up to 128kbps supported.</span></div>";
+    const char HTTP_SECT_HEAD[] = "<div class='ss'><div class='hl'>Streaming URLs<br><span style='white-space:normal;font-size:80%'>Only http, content type \"audio/mpeg\" and bitrates up to 128kbps supported.</span></div>";
     const char HTTP_SECT_FOOT[] = "</div>";
     const char streamtm1[] = "<label for='str%d'>URL for %c %d</label><br><input id='str%d' name='str%d' maxlength='127' value='%s'%s><br>";
     const char streamtmp1[] = " placeholder='Example: http://abc/stream'";
@@ -2399,10 +2372,18 @@ static void setCBVal(WiFiManagerParameter *el, char *sv)
     el->setValue((*sv == '0') ? "0" : "1");
 }
 
-int16_t filterOutUTF8(char *src, char *dst, int srcLen = 0, int maxChars = 99999)
+static unsigned int UTF8ByteSeqLen(unsigned char c)
 {
-    int i, j, slen = srcLen ? srcLen : strlen(src);
-    unsigned char c, e;
+    if(c >= 192 && c < 224) return 1;
+    if(c >= 224 && c < 240) return 2;
+    if(c >= 240 && c < 248) return 3;  // Invalid UTF8 >= 245, but consider 4-byte char anyway
+    return 0;
+}
+
+int filterOutUTF8(char *src, char *dst, int srcLen = 0, int maxChars = 99999)
+{
+    unsigned int i, j, e, slen = srcLen ? srcLen : strlen(src);
+    unsigned char c;
 
     for(i = 0, j = 0; i < slen && j < maxChars; i++) {
         c = (unsigned char)src[i];
@@ -2410,24 +2391,10 @@ int16_t filterOutUTF8(char *src, char *dst, int srcLen = 0, int maxChars = 99999
             if(c >= 'a' && c <= 'z') c &= ~0x20;
             else if(c == 126) c = '-';   // 126 = ~ but displayed as °, so make '-'
             dst[j++] = c; 
+        } else if(!c) {
+            break;
         } else {
-            e = 0;
-            if     (c >= 192 && c < 224)  e = 1;
-            else if(c >= 224 && c < 240)  e = 2;
-            else if(c >= 240 && c < 245)  e = 3;    // yes, 245 (otherwise bad UTF8)
-            if(e) {
-                if((i + e) < slen) {
-                    /*
-                    for(k = i + 1, d = 0; k <= i + 1 + e; k++) {
-                        d |= (unsigned char)src[k];
-                    }
-                    if(d > 127 && d < 192) i += e;
-                    */
-                    i += e;   // Why check? Just skip.
-                } else {
-                    break;
-                }
-            }
+            i += UTF8ByteSeqLen(c);
         }
     }
     dst[j] = 0;
@@ -2437,22 +2404,15 @@ int16_t filterOutUTF8(char *src, char *dst, int srcLen = 0, int maxChars = 99999
 
 static void truncateUTF8(char *src)
 {
-    int i, slen = strlen(src);
-    unsigned char c, e;
+    unsigned int i, e, slen = strlen(src);
 
     for(i = 0; i < slen; i++) {
-        c = (unsigned char)src[i];
-        e = 0;
-        if     (c >= 192 && c < 224)  e = 1;
-        else if(c >= 224 && c < 240)  e = 2;
-        else if(c >= 240 && c < 248)  e = 3;  // Invalid UTF8 >= 245, but consider 4-byte char anyway
-        if(e) {
-            if((i + e) < slen) {
-                i += e;
-            } else {
+        if((e = UTF8ByteSeqLen((unsigned char)src[i]))) {
+            if((i + e) >= slen) {
                 src[i] = 0;
                 return;
             }
+            i += e;
         }
     }
 }

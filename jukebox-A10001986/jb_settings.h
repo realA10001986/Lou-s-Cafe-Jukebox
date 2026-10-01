@@ -64,6 +64,10 @@ void unmount_fs();
 
 unsigned int check_file_len(const char *audio_file, bool& srcMedium, uint8_t *tbuf, uint32_t tsz);
 
+void deleteFileFromSD(const char *fn);
+bool readFileFromSD(const char *fn, uint8_t *buf, int len);
+bool writeFileToSD(const char *fn, uint8_t *buf, int len);
+
 bool evalBool(char *s);
 bool evalBoolSetClear(char *s, uint32_t& ff, uint32_t fl);
 

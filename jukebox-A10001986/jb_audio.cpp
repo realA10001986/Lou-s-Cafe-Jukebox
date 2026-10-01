@@ -132,14 +132,13 @@ static float    append_vol;
 static uint32_t append_flags;
 static int      appendFile = 0;
 
-static const char *tcdrdone = "/TCD_DONE.TXT";
 unsigned long   renNow1, renNow2;
 
 static float    getVolume();
 
 static void     checkForSC();
 
-static int      mp_findMaxNum();
+static int      mp_findMaxNum(bool writeCache = true);
 static bool     mp_play_int(bool force);
 static void     mp_buildFileName(char *fnbuf, int num);
 static bool     mp_renameFilesInDir(bool isSetup);
@@ -242,7 +241,7 @@ void audio_loop()
     mp_sendStatus();
 }
 
-static int32_t skipID3(char *buf)
+static int32_t skipID3(uint8_t *buf)
 {
     if(buf[0] == 'I' && buf[1] == 'D' && buf[2] == '3' && 
        buf[3] >= 0x02 && buf[3] <= 0x04 && buf[4] == 0 &&
@@ -262,18 +261,25 @@ static int32_t skipID3(char *buf)
 static void setupLoopAndBegin(AudioFileSourceLoop *src, uint32_t flags)
 {
     int32_t pos = 0;
-    char buf[10];
+    uint8_t buf[10];
 
     buf[0] = 0;
 
+    src->setEndPos(0);
+
     src->setPlayLoop(!!(flags & PA_LOOP));
+
     if(flags & PA_DOID3TS) {
         src->read((void *)buf, 10);
         pos = skipID3(buf);
+        //if(flags & PA_ISMUSIC) {
+            src->seek(-128, SEEK_END);
+            src->read((void *)buf, 3);
+            src->setEndPos((buf[0] == 'T' && buf[1] == 'A' && buf[2] == 'G') ? src->getPos() - 3 : 0);
+        //}
         src->seek(pos, SEEK_SET);
     }
     src->setStartPos(pos);
-    
     mp3->begin(src, out);
 }
 
@@ -537,10 +543,35 @@ bool st_stop(bool force)
 /*
  * The Music Player
  */
- 
+
+static void mp_buildFolderName(char *fnbuf, int mfNum)
+{
+    // internal number:
+    // 0-9   => music[A-K]
+    // 10-19 => music[1-10]
+    if(mfNum < 10) {
+        sprintf(fnbuf, "/music%c", jbltrs[mfNum]);
+    } else {
+        sprintf(fnbuf, "/music%d", mfNum - 9);
+    }
+}
+
+static void mp_buildCacheName(char *fnbuf, int mfNum)
+{
+    mp_buildFolderName(fnbuf, mfNum);
+    strcat(fnbuf, "c");
+}
+
+static void mp_buildFileName(char *fnbuf, int fnum)
+{
+    mp_buildFolderName(fnbuf, musFolderNum);
+    
+    sprintf(fnbuf + strlen(fnbuf), "/%03d.mp3", fnum);
+}
+
 void mp_init(bool isSetup)
 {
-    char fnbuf[20];
+    int t;
     
     csf |= CSF_NOMUSIC;
 
@@ -556,38 +587,44 @@ void mp_init(bool isSetup)
         Serial.println("MusicPlayer: Checking for music files");
         #endif
 
-        mp_renameFilesInDir(isSetup);
+        if(mp_renameFilesInDir(isSetup)) {
+        
+            if((t = mp_findMaxNum()) >= 0) {
 
-        mp_buildFileName(fnbuf, 0);
-        if(SD.exists(fnbuf)) {
-            csf &= ~CSF_NOMUSIC;
-            
-            aud_state.maxMusic = mp_findMaxNum();
-            #ifdef JB_DBG_MP
-            Serial.printf("MusicPlayer: last file num %d\n", aud_state.maxMusic);
-            #endif
-
-            playList = (uint16_t *)malloc((aud_state.maxMusic + 1) * 2);
-
-            if(!playList) {
-
-                csf |= CSF_NOMUSIC;
+                csf &= ~CSF_NOMUSIC;
+                
+                aud_state.maxMusic = t;
                 #ifdef JB_DBG_MP
-                Serial.println("MusicPlayer: Failed to allocate PlayList");
+                Serial.printf("MusicPlayer: last file num %d\n", aud_state.maxMusic);
                 #endif
+    
+                playList = (uint16_t *)malloc((aud_state.maxMusic + 1) * 2);
+    
+                if(!playList) {
+    
+                    csf |= CSF_NOMUSIC;
+                    #ifdef JB_DBG_MP
+                    Serial.println("MusicPlayer: Failed to allocate PlayList");
+                    #endif
+    
+                } else {
+    
+                    // Init play list
+                    mp_makeShuffle(!!aud_state.mpShuffle);
+    
+                    aud_state.curTrack = playList[0];
+                    
+                }
 
             } else {
-
-                // Init play list
-                mp_makeShuffle(!!aud_state.mpShuffle);
-                
-            }
-
-            aud_state.curTrack = playList[0];
+                #ifdef JB_DBG_MP
+                Serial.printf("MusicPlayer: mp_findMaxNum returned -1 for folder %d\n", musFolderNum);
+                #endif
+            }            
 
         } else {
             #ifdef JB_DBG_MP
-            Serial.printf("MusicPlayer: Failed to open %s\n", fnbuf);
+            Serial.printf("MusicPlayer: mp_renameFilesInDir failed for folder %d\n", musFolderNum);
             #endif
         }
     }
@@ -608,26 +645,70 @@ static bool mp_checkForFile(int num)
     return false;
 }
 
-static int mp_findMaxNum()
+static bool checkCacheFile(char *fn, int& result)
 {
-    int i, j;
+    int j, k;
+    uint8_t buf[4];
+    
+    result = -1;
 
-    for(j = 256, i = 512; j >= 2; j >>= 1) {
+    if(readFileFromSD(fn, buf, 4)) {
+        k = buf[0] | (buf[1] << 8);
+        j = (buf[2] | (buf[3] << 8)) ^ 0xaa55;
+        if(k == j) {
+            if(j == 0xffff) return true;
+            else if(j <= 99) { result = j; return true; }
+        }
+        deleteFileFromSD(fn);
+    }
+
+    return false;
+}
+
+// Find highest track number.
+// Returns -1 if no audio files present
+static int mp_findMaxNum(bool writeCache)
+{
+    int i = -1, j;
+    uint8_t buf[4];
+    char fnbuf[32];
+
+    mp_buildCacheName(fnbuf, musFolderNum);
+
+    if(checkCacheFile(fnbuf, j))
+        return j;
+
+    if(mp_checkForFile(0)) {
+
+        for(j = 32, i = 64; j >= 2; j >>= 1) {
+            if(mp_checkForFile(i)) {
+                i += j;    
+            } else {
+                i -= j;
+            }
+        }
         if(mp_checkForFile(i)) {
-            i += j;    
+            if(mp_checkForFile(i+1)) i++;
         } else {
-            i -= j;
+            i--;
+            if(!mp_checkForFile(i)) i--;
+        }
+
+    }
+
+    if(writeCache) {
+        buf[0] = i & 0xff;
+        buf[1] = i >> 8;
+        j = i ^ 0xaa55;
+        buf[2] = j & 0xff;
+        buf[3] = j >> 8;
+        if(writeFileToSD(fnbuf, buf, 4)) {
+            #ifdef JB_DBG_MP
+            Serial.printf("find_max: Wrote %s (%d)\n", fnbuf, i);
+            #endif
         }
     }
-    if(mp_checkForFile(i)) {
-        if(mp_checkForFile(i+1)) i++;
-    } else {
-        i--;
-        if(!mp_checkForFile(i)) i--;
-    }
-
-    if(i > 99) i = 99;
-
+    
     return i;
 }
 
@@ -841,35 +922,17 @@ void mp_sendStatus(int force)
     }
 }
 
-static void mp_buildFolderName(char *fnbuf, int mfNum)
-{
-    // internal number:
-    // 0-9   => music[A-K]
-    // 10-19 => music[1-10]
-    if(mfNum < 10) {
-        sprintf(fnbuf, "/music%c", jbltrs[mfNum]);
-    } else {
-        sprintf(fnbuf, "/music%d", mfNum - 9);
-    }
-}
-
-static void mp_buildFileName(char *fnbuf, int fnum)
-{
-    mp_buildFolderName(fnbuf, musFolderNum);
-    
-    sprintf(fnbuf + strlen(fnbuf), "/%03d.mp3", fnum);
-}
-
 int mp_checkForFolder(int num)
 {
     char fnbuf[32];
-    int  flen;
+    char fnbuf2[32];
+    int  flen, t;
 
     // returns 
-    // 1 if folder is ready (contains 000.mp3 and DONE)
+    // 1 if folder is ready (valid cache file, 0-99)
     // 0 if folder does not exist
-    // -1 if folder exists but needs processing
-    // -2 if musicX contains no audio files
+    // -1 if folder exists but needs processing (no cache)
+    // -2 if musicX contains no audio files (checkCacheFile reporting -1)
     // -3 if musicX is not a folder
     // -4 if no SD
 
@@ -879,37 +942,35 @@ int mp_checkForFolder(int num)
     if(num < 0 || num > NUM_MUSIC_FOLDERS - 1)
         return 0;
 
-    // Build folder name
     mp_buildFolderName(fnbuf, num);
     flen = strlen(fnbuf);
+
+    mp_buildCacheName(fnbuf2, num);
     
+    File origin = SD.open(fnbuf);
+
     // If folder does not exist, return 0
-    if(!SD.exists(fnbuf))
+    if(!origin) {
+        deleteFileFromSD(fnbuf2);
         return 0;
+    }
 
     // Check if folder is folder
-    File origin = SD.open(fnbuf);
-    if(!origin) return 0;
     if(!origin.isDirectory()) {
         // If musicX is not a folder, return -3
         origin.close();
+        deleteFileFromSD(fnbuf2);
         return -3;
     }
     origin.close();
 
-    // Check if DONE exists
-    strcat(fnbuf, tcdrdone);
-    if(SD.exists(fnbuf)) {
-        strcpy(fnbuf + flen + 1, "000.mp3");
-        if(SD.exists(fnbuf)) {
-            // If 000.mp3 and DONE exists, return 1
-            return 1;
-        }
-        // If DONE, but no 000.mp3, assume no audio files
-        return -2;
+    // Check for cache file
+    if(checkCacheFile(fnbuf2, t)) {
+        if(t >= 0) return 1;
+        else return -2;
     }
       
-    // DONE not present: Needs processing
+    // cache not present (or invalid): Needs processing
     return -1;
 }
 
@@ -928,8 +989,8 @@ static bool mpren_checkFN(const char *buf)
 
     size_t s = strlen(buf);
 
-    // Filename shorter than ".mp3"? Ignore.
-    if(s < 4) return true;
+    // Filename shorter than "x.mp3"? Ignore.
+    if(s < 5) return true;
 
     s -= 4;
     // Not an mp3? Ignore.
@@ -946,8 +1007,8 @@ static bool mpren_checkFN(const char *buf)
     if(s != 3)
         return false;
 
-    // Filename not a 3-digit number? Do it.
-    if(buf[0] < '0' || buf[0] > '9' ||
+    // Filename not a 3-digit number <= 099? Do it.
+    if(buf[0] != '0' ||
        buf[1] < '0' || buf[1] > '9' ||
        buf[2] < '0' || buf[2] > '9')
         return false;
@@ -989,43 +1050,41 @@ static bool mp_renameFilesInDir(bool isSetup)
     char *bufs[8] = { NULL };
     unsigned long sz, bufSize;
     bool stopLoop = false;
-    bool hls = false;
-#ifdef HAVE_GETNEXTFILENAME
     bool isDir;
-#endif
     #ifdef JB_DBG_MP
     const char *funcName = "MusicPlayer/Renamer: ";
     #endif
 
     renNow1 = renNow2 = millis();
 
-    //Build folder name
+    // We check for basics (folder exists, is a folder)
+    // then we look for the cache file. If these checks
+    // pass, we assume everything in order.
+
+    mp_buildCacheName(fnbuf3, musFolderNum);
+    
     mp_buildFolderName(fnbuf, musFolderNum);
     fnameoffset = strlen(fnbuf) + 1;
 
-    // Build "DONE"-file name
-    strcpy(fnbuf3, fnbuf);
-    strcat(fnbuf3, tcdrdone);
-
-    // Check for DONE file
-    if(SD.exists(fnbuf3)) {
-        #ifdef JB_DBG_MP
-        Serial.printf("%s%s exists\n", funcName, fnbuf3);
-        #endif
-        return true;
-    }
-
-    // Check if folder exists
-    if(!SD.exists(fnbuf)) {
+    // Open folder and check if it exists and is actually a folder
+    File origin = SD.open(fnbuf);
+    if(!origin) {
+        deleteFileFromSD(fnbuf3);
         return false;
     }
-
-    // Open folder and check if it is actually a folder
-    File origin = SD.open(fnbuf);
-    if(!origin) return false;
     if(!origin.isDirectory()) {
         origin.close();
+        deleteFileFromSD(fnbuf3);
         return false;
+    }
+
+    // Check cache file
+    if(checkCacheFile(fnbuf3, strLength)) {
+        origin.close();
+        #ifdef JB_DBG_MP
+        Serial.printf("%s%s exists and is valid\n", funcName, fnbuf3);
+        #endif
+        return true;
     }
         
     // Allocate pointer array
@@ -1047,109 +1106,57 @@ static bool mp_renameFilesInDir(bool isSetup)
 
     // Loop through all files in folder
 
-#ifdef HAVE_GETNEXTFILENAME
     String fileName = origin.getNextFileName(&isDir);
     // Check if File::name() returns FQN or plain name
     if(fileName.length() > 0) nameOffs = (fileName.charAt(0) == '/') ? fnameoffset : 0;
-    while(!stopLoop && fileName.length() > 0)
-#else
-    File file = origin.openNextFile();
-    // Check if File::name() returns FQN or plain name
-    if(file) nameOffs = (file.name()[0] == '/') ? fnameoffset : 0;
-    while(!stopLoop && file)
-#endif
-    {
+    
+    while(!stopLoop && fileName.length() > 0) {
 
         mpren_looper(isSetup, true, 0);
 
-#ifdef HAVE_GETNEXTFILENAME
-
         if(!isDir) {
             const char *fn = fileName.c_str();
-            strLength = strlen(fn);
-            sz = strLength - nameOffs + 1;
-            if((sz > bufSize) && (allocBufIdx < 7)) {
-                allocBufIdx++;
-                if(!(bufs[allocBufIdx] = (char *)malloc(bufSizes[allocBufIdx]))) {
-                    #ifdef JB_DBG_MP
-                    Serial.printf("%sFailed to allocate additional sort buffer\n", funcName);
-                    #endif
-                } else {
-                    #ifdef JB_DBG_MP
-                    Serial.printf("%sAllocated additional sort buffer\n", funcName);
-                    #endif
-                    c = bufs[allocBufIdx];
-                    bufSize = bufSizes[allocBufIdx];
+            if(!mpren_checkFN(fn + nameOffs)) {
+                strLength = strlen(fn);
+                sz = strLength - nameOffs - 4 + 1;
+                if((sz > bufSize) && (allocBufIdx < 7)) {
+                    allocBufIdx++;
+                    if(!(bufs[allocBufIdx] = (char *)malloc(bufSizes[allocBufIdx]))) {
+                        #ifdef JB_DBG_MP
+                        Serial.printf("%sFailed to allocate additional sort buffer\n", funcName);
+                        #endif
+                    } else {
+                        #ifdef JB_DBG_MP
+                        Serial.printf("%sAllocated additional sort buffer\n", funcName);
+                        #endif
+                        c = bufs[allocBufIdx];
+                        bufSize = bufSizes[allocBufIdx];
+                    }
                 }
-            }
-            if((strLength < 256) && (sz <= bufSize)) {
-                if(!mpren_checkFN(fn + nameOffs)) {
+                if((strLength < 256) && (sz <= bufSize)) {
                     *d++ = c;
-                    strcpy(c, fn + nameOffs);
+                    memcpy(c, fn + nameOffs, sz - 1);
+                    c[sz -1] = 0;
+                    //strcpy(c, fn + nameOffs);
                     #ifdef JB_DBG_MP
                     Serial.printf("%sAdding '%s'\n", funcName, c);
                     #endif
                     c += sz;
                     bufSize -= sz;
                     fileNum++;
+                } else if(sz > bufSize) {
+                    stopLoop = true;
+                    #ifdef JB_DBG_MP
+                    Serial.printf("%sSort buffer(s) exhausted, remaining files ignored\n", funcName);
+                    #endif
                 }
-            } else if(sz > bufSize) {
-                stopLoop = true;
-                #ifdef JB_DBG_MP
-                Serial.printf("%sSort buffer(s) exhausted, remaining files ignored\n", funcName);
-                #endif
             }
         }
-        
-#else // --------------
-
-        if(!file.isDirectory()) {
-            strLength = strlen(file.name());
-            sz = strLength - nameOffs + 1;
-            if((sz > bufSize) && (allocBufIdx < 7)) {
-                allocBufIdx++;
-                if(!(bufs[allocBufIdx] = (char *)malloc(bufSizes[allocBufIdx]))) {
-                    #ifdef JB_DBG_MP
-                    Serial.printf("%sFailed to allocate additional sort buffer\n", funcName);
-                    #endif
-                } else {
-                    #ifdef JB_DBG_MP
-                    Serial.printf("%sAllocated additional sort buffer\n", funcName);
-                    #endif
-                    c = bufs[allocBufIdx];
-                    bufSize = bufSizes[allocBufIdx];
-                }
-            }
-            if((strLength < 256) && (sz <= bufSize)) {
-                if(!mpren_checkFN(file.name() + nameOffs)) {
-                    *d++ = c;
-                    strcpy(c, file.name() + nameOffs);
-                    #ifdef JB_DBG_MP
-                    Serial.printf("%sAdding '%s'\n", funcName, c);
-                    #endif
-                    c += sz;
-                    bufSize -= sz;
-                    fileNum++;
-                }
-            } else if(sz > bufSize) {
-                stopLoop = true;
-                #ifdef JB_DBG_MP
-                Serial.printf("%sSort buffer(s) exhausted, remaining files ignored\n", funcName);
-                #endif
-            }
-        }
-        file.close();
-        
-#endif
         
         if(fileNum >= 100) stopLoop = true;
 
         if(!stopLoop) {
-            #ifdef HAVE_GETNEXTFILENAME
             fileName = origin.getNextFileName(&isDir);
-            #else
-            file = origin.openNextFile();
-            #endif
         }
     }
 
@@ -1164,7 +1171,7 @@ static bool mp_renameFilesInDir(bool isSetup)
     if(fileNum) {
 
         int nstart;
-        char fnbuf2[256];
+        char fnbuf2[256+8];
         
         // Sort file names
         mpren_insertionSort(a, fileNum);
@@ -1178,7 +1185,7 @@ static bool mp_renameFilesInDir(bool isSetup)
         // the usual way. Otherwise start at 000.
         strcpy(fnbuf + nstart, "000.mp3");
         if(SD.exists(fnbuf)) {
-            count = mp_findMaxNum() + 1;
+            count = mp_findMaxNum(false) + 1;
         }
 
         for(int i = 0; i < fileNum && count <= 99; i++) {
@@ -1187,6 +1194,7 @@ static bool mp_renameFilesInDir(bool isSetup)
 
             sprintf(fnbuf + nstart, "%03d.mp3", count);
             strcpy(fnbuf2 + nstart, a[i]);
+            strcat(fnbuf2, ".mp3");
             if(!SD.rename(fnbuf2, fnbuf)) {
                 bool done = false;
                 while(!done) {
@@ -1212,14 +1220,11 @@ static bool mp_renameFilesInDir(bool isSetup)
     }
     free(a);
 
-    // Write "DONE" file
-    if((origin = SD.open(fnbuf3, FILE_WRITE))) {
-        origin.close();
-        #ifdef JB_DBG_MP
-        Serial.printf("%sWrote %s\n", funcName, fnbuf3);
-        #endif
-        mfstatus[musFolderNum] = mp_checkForFolder(musFolderNum);
-    }
+    // Find max track num and save it to new cache file
+    mp_findMaxNum();
+
+    // Update mfstatus for current folder
+    mfstatus[musFolderNum] = mp_checkForFolder(musFolderNum);
 
     return true;
 }

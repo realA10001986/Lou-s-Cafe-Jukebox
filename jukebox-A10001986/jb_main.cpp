@@ -2314,6 +2314,7 @@ void prepareReboot()
     st_stop(true);
     mp_stop(true);
     stopAudio();
+    wifiMDNSGoodBye();
     allOff();
     flushDelayedSave();
     delay(1000);

@@ -140,6 +140,16 @@
 
 /*  Changelog
  *  
+ *  2026/10/xx (A10001986) [1.06]
+ *    - Fix minor issues with ID3v1 tags
+ *    - Music Player: The "TCD_DONE.TXT" file is now obsolete. The firmware instead uses
+ *      a cache file in the top-most folder of the SD card ("musicXc") which needs to be
+ *      deleted when files are added to the respective folder.
+ *    - Protect the Jukebox from uploading a wrong firmware by accident. The filename of
+ *      the firmware binary now must contain the word "jukebox". The check is case-
+ *      insensitive.
+ *    - Bonjour/mDNS: Send good-bye packet on controlled reboots
+ *    - Re-arrange WiFi Configuration page for a better user experience
  *  2026/08/26 (A10001986) [1.05]
  *    - New sound pack (JB03)
  *    - Various code cleanups

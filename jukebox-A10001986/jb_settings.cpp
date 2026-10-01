@@ -58,6 +58,8 @@
 #define ARDUINOJSON_USE_DOUBLE 0
 #define ARDUINOJSON_ENABLE_ARDUINO_STRING 0
 #define ARDUINOJSON_ENABLE_ARDUINO_STREAM 0
+#define ARDUINOJSON_ENABLE_ARDUINO_PRINT 0
+#define ARDUINOJSON_DECODE_UNICODE 0
 #define ARDUINOJSON_ENABLE_STD_STREAM 0
 #define ARDUINOJSON_ENABLE_STD_STRING 0
 #define ARDUINOJSON_ENABLE_NAN 0
@@ -121,7 +123,6 @@ static struct [[gnu::packed]] {
 
 static int      secSetValidBytes = 0;
 static uint32_t secSettingsHash  = 0;
-static bool     haveSecSettings  = false;
 static int      terSetValidBytes = 0;
 static uint32_t terSettingsHash  = 0;
 static bool     haveTerSettings  = false;
@@ -266,6 +267,14 @@ unsigned int check_file_len(const char *fn, bool& srcMedium, uint8_t *tbuf, uint
     return s;
 }
 
+
+void deleteFileFromSD(const char *fn)
+{
+    if(haveSD) {
+        SD.remove(fn);
+    }
+}
+
 static bool readFile(File& myFile, uint8_t *buf, int len)
 {
     if(myFile) {
@@ -312,7 +321,7 @@ static bool readFileFromFSU(const char *fn, uint8_t*& buf, int& len)
 }
 
 // Read file of known size from SD
-static bool readFileFromSD(const char *fn, uint8_t *buf, int len)
+bool readFileFromSD(const char *fn, uint8_t *buf, int len)
 {   
     if(!haveSD)
         return false;
@@ -342,7 +351,7 @@ static bool writeFile(File& myFile, uint8_t *buf, int len)
 }
 
 // Write file to SD
-static bool writeFileToSD(const char *fn, uint8_t *buf, int len)
+bool writeFileToSD(const char *fn, uint8_t *buf, int len)
 {
     if(!haveSD)
         return false;
@@ -589,74 +598,6 @@ static bool writeJSONCfgFile(const JsonDocument& json, const char *fn, bool useS
  *  Helpers for parm copying & checking
  */
 
-static bool checkValidNumParm(char *text, int lowerLim, int upperLim, int setDefault)
-{
-    int i, len = strlen(text);
-    bool ret = false;
-
-    if(!len) {
-        i = setDefault;
-        ret = true;
-    } else {
-        for(int j = 0; j < len; j++) {
-            if(text[j] < '0' || text[j] > '9') {
-                i = setDefault;
-                ret = true;
-                break;
-            }
-        }
-        if(!ret) {
-            i = atoi(text);   
-            if(i < lowerLim) {
-                i = lowerLim;
-                ret = true;
-            } else if(i > upperLim) {
-                i = upperLim;
-                ret = true;
-            }
-        }
-    }
-
-    // Re-do to get rid of formatting errors (eg "000")
-    sprintf(text, "%d", i);
-
-    return ret;
-}
-
-static bool checkValidNumParmF(char *text, float lowerLim, float upperLim, float setDefault)
-{
-    int i, len = strlen(text);
-    bool ret = false;
-    float f;
-
-    if(!len) {
-        f = setDefault;
-        ret = true;
-    } else {
-        for(i = 0; i < len; i++) {
-            if(text[i] != '.' && text[i] != '-' && (text[i] < '0' || text[i] > '9')) {
-                f = setDefault;
-                ret = true;
-                break;
-            }
-        }
-        if(!ret) {
-            f = strtof(text, NULL);
-            if(f < lowerLim) {
-                f = lowerLim;
-                ret = true;
-            } else if(f > upperLim) {
-                f = upperLim;
-                ret = true;
-            }
-        }
-    }
-    // Re-do to get rid of formatting errors (eg "0.")
-    sprintf(text, "%.1f", f);
-
-    return ret;
-}
-
 static bool CopyTextParm(const char *json, char *setting, int setSize)
 {
     if(!json) return true;
@@ -666,22 +607,37 @@ static bool CopyTextParm(const char *json, char *setting, int setSize)
     return false;
 }
 
-static bool CopyCheckValidNumParm(const char *json, char *text, int psize, int lowerLim, int upperLim, int setDefault)
+static bool CopyCBParm(const char *json, char *text, int setDefault)
 {
-    if(!json) return true;
+    text[1] = 0;
+    
+    if(json && (*json == '0' || *json == '1')) {
+        *text = *json;
+        return false;
+    }
 
-    memset(text, 0, psize);
-    strncpy(text, json, psize-1);
-    return checkValidNumParm(text, lowerLim, upperLim, setDefault);
+    *text = setDefault ? '1' : '0';
+
+    return true;
 }
 
-static bool CopyCheckValidNumParmF(const char *json, char *text, int psize, float lowerLim, float upperLim, float setDefault)
+static bool CopyCheckValidNumParm(const char *json, char *text, int lowerLim, int upperLim, int setDefault)
 {
-    if(!json) return true;
+    bool ret = true;
+    int t = setDefault;
 
-    memset(text, 0, psize);
-    strncpy(text, json, psize-1);
-    return checkValidNumParmF(text, lowerLim, upperLim, setDefault);
+    if(json) {
+        int u = atoi(json);    
+        if(u >= lowerLim && u <= upperLim) {
+            t = u;
+            ret = false;
+        }
+    }
+
+    // Re-do to get rid of formatting errors (eg "000")
+    sprintf(text, "%d", t);
+
+    return ret;
 }
 
 bool evalBool(char *s)
@@ -766,26 +722,26 @@ static bool read_settings(File configFile, int cfgReadCount)
 
         wd |= CopyTextParm(json["hn"], settings.hostName, sizeof(settings.hostName));
         
-        wd |= CopyCheckValidNumParm(json["wCR"], settings.wifiConRetries, sizeof(settings.wifiConRetries), 1, 10, DEF_WIFI_RETRY);
+        wd |= CopyCheckValidNumParm(json["wCR"], settings.wifiConRetries, 1, 10, DEF_WIFI_RETRY);
 
         wd |= CopyTextParm(json["sID"], settings.systemID, sizeof(settings.systemID));
         wd |= CopyTextParm(json["appw"], settings.appw, sizeof(settings.appw));
-        wd |= CopyCheckValidNumParm(json["apch"], settings.apChnl, sizeof(settings.apChnl), 0, 11, DEF_AP_CHANNEL);
-        wd |= CopyCheckValidNumParm(json["wAOD"], settings.wifiAPOffDelay, sizeof(settings.wifiAPOffDelay), 0, 99, DEF_WIFI_APOFFDELAY);
+        wd |= CopyCheckValidNumParm(json["apch"], settings.apChnl, 0, 11, DEF_AP_CHANNEL);
+        wd |= CopyCheckValidNumParm(json["wAOD"], settings.wifiAPOffDelay, 0, 99, DEF_WIFI_APOFFDELAY);
 
         // Settings
 
-        wd |= CopyCheckValidNumParm(json["playJB"], settings.playJB, sizeof(settings.playJB), 0, 1, DEF_PLAY_JB_SND);
-        wd |= CopyCheckValidNumParm(json["playALsnd"], settings.playALsnd, sizeof(settings.playALsnd), 0, 1, DEF_PLAY_ALM_SND);
-        wd |= CopyCheckValidNumParm(json["NMB"], settings.NMB, sizeof(settings.NMB), 0, 1, DEF_NMB);
+        wd |= CopyCBParm(json["playJB"], settings.playJB, DEF_PLAY_JB_SND);
+        wd |= CopyCBParm(json["playALsnd"], settings.playALsnd, DEF_PLAY_ALM_SND);
+        wd |= CopyCBParm(json["NMB"], settings.NMB, DEF_NMB);
 
         wd |= CopyTextParm(json["tcdIP"], settings.tcdIP, sizeof(settings.tcdIP));
-        wd |= CopyCheckValidNumParm(json["useNM"], settings.useNM, sizeof(settings.useNM), 0, 1, DEF_USE_NM);
-        wd |= CopyCheckValidNumParm(json["ignTT"], settings.ignTT, sizeof(settings.ignTT), 0, 1, DEF_IGN_TT);
+        wd |= CopyCBParm(json["useNM"], settings.useNM, DEF_USE_NM);
+        wd |= CopyCBParm(json["ignTT"], settings.ignTT, DEF_IGN_TT);
 
-        wd |= CopyCheckValidNumParm(json["CoSD"], settings.CfgOnSD, sizeof(settings.CfgOnSD), 0, 1, DEF_CFG_ON_SD);
+        wd |= CopyCBParm(json["CoSD"], settings.CfgOnSD, DEF_CFG_ON_SD);
         
-        wd |= CopyCheckValidNumParm(json["wPwr"], settings.waitForPower, sizeof(settings.waitForPower), 0, 1, DEF_WAIT_PWR);
+        wd |= CopyCBParm(json["wPwr"], settings.waitForPower, DEF_WAIT_PWR);
 
         for(int i = 0; i < NUM_STREAMS; i++) {
             sprintf(jid, "str%d", i);
@@ -795,17 +751,17 @@ static bool read_settings(File configFile, int cfgReadCount)
             }
         }
         
-        wd |= CopyCheckValidNumParm(json["uMQTT"], settings.useMQTT, sizeof(settings.useMQTT), 0, 1, 0);
+        wd |= CopyCBParm(json["uMQTT"], settings.useMQTT, 0);
         wd |= CopyTextParm(json["mqttS"], settings.mqttServer, sizeof(settings.mqttServer));
-        wd |= CopyCheckValidNumParm(json["mqttV"], settings.mqttVers, sizeof(settings.mqttVers), 0, 1, 0);
+        wd |= CopyCheckValidNumParm(json["mqttV"], settings.mqttVers, 0, 1, 0);
         wd |= CopyTextParm(json["mqttU"], settings.mqttUser, sizeof(settings.mqttUser));
 
-        wd |= CopyCheckValidNumParm(json["pMP"], settings.pubMP, sizeof(settings.pubMP), 0, 1, 0);
+        wd |= CopyCBParm(json["pMP"], settings.pubMP, 0);
         
-        wd |= CopyCheckValidNumParm(json["mqP"], settings.mqttPwr, sizeof(settings.mqttPwr), 0, 1, 0);
-        wd |= CopyCheckValidNumParm(json["mqPO"], settings.mqttPwrOn, sizeof(settings.mqttPwrOn), 0, 1, 0);
+        wd |= CopyCBParm(json["mqP"], settings.mqttPwr, 0);
+        wd |= CopyCBParm(json["mqPO"], settings.mqttPwrOn, 0);
 
-        wd |= CopyCheckValidNumParm(json["mqII"], settings.mqmpii, sizeof(settings.mqmpii), 0, 1, 1);
+        wd |= CopyCBParm(json["mqII"], settings.mqmpii, 1);
         
         wd |= CopyTextParm(json["mqmpBC"], settings.mqmpbackchannel, sizeof(settings.mqmpbackchannel));
 
@@ -1107,7 +1063,6 @@ void settings_setup()
     // Load secondary config file
     if(loadConfigFile(secCfgName, (uint8_t *)&secSettings, sizeof(secSettings), secSetValidBytes)) {
         secSettingsHash = calcHash((uint8_t *)&secSettings, sizeof(secSettings));
-        haveSecSettings = true;
     }
 
     // Load tertiary config file (SD only)
@@ -1149,7 +1104,7 @@ void loadCurVolume()
         if(terSettings.curVolume < VOL_LEVELS) {
             aud_state.curVolume = terSettings.curVolume;
         }
-    } else if(haveSecSettings) {
+    } else {
         #ifdef JB_DBG_BOOT
         Serial.println("loadCurVolume: extracting from secSettings");
         #endif
@@ -1182,9 +1137,7 @@ void saveCurVolume()
 
 static void loadCarMode()
 {
-    if(haveSecSettings) {
-        carMode = !!secSettings.carMode;
-    }
+    carMode = !!secSettings.carMode; 
 }
 
 void saveCarMode()
@@ -1200,9 +1153,7 @@ void saveCarMode()
 
 static void loadUpdAvail()
 {
-    if(haveSecSettings) {
-        showUpdAvail = !!secSettings.showUpdAvail;
-    }
+    showUpdAvail = !!secSettings.showUpdAvail;
 }
 
 void saveUpdAvail()
@@ -1217,12 +1168,8 @@ void saveUpdAvail()
 
 void loadUpdVers(int &v, int& r)
 {
-    if(haveSecSettings) {
-        v = secSettings.updateV;
-        r = secSettings.updateR;
-    } else {
-        v = r = 0;
-    }
+    v = secSettings.updateV;
+    r = secSettings.updateR;
 }
 
 void saveUpdVers(int v, int r)
@@ -1238,13 +1185,8 @@ void saveUpdVers(int v, int r)
 
 void loadMusFoldNum()
 {
-    if(haveTerSettings) {
-        #ifdef JB_DBG_BOOT
-        Serial.println("loadMusFoldNum: extracting from terSettings");
-        #endif
-        if(terSettings.musFolderNum < NUM_MUSIC_FOLDERS) {
-            musFolderNum = terSettings.musFolderNum;
-        }
+    if(terSettings.musFolderNum < NUM_MUSIC_FOLDERS) {
+        musFolderNum = terSettings.musFolderNum;
     }
 }
 
@@ -1260,9 +1202,7 @@ void saveMusFoldNum()
 
 void loadShuffle()
 {
-    if(haveTerSettings) {
-        aud_state.mpShuffle = terSettings.mpShuffle;
-    }
+    aud_state.mpShuffle = terSettings.mpShuffle;
 }
 
 void saveShuffle()
@@ -1277,9 +1217,7 @@ void saveShuffle()
 
 void loadOpMode()
 {
-    if(haveTerSettings) {
-        opMode = terSettings.opMode;
-    }
+    opMode = terSettings.opMode;
 }
 
 void storeOpMode()
@@ -1301,9 +1239,7 @@ void saveOpMode()
 
 void loadCurStream()
 {
-    if(haveTerSettings) {
-        curStream = terSettings.curStream;
-    }
+    curStream = terSettings.curStream;
 }
 
 void storeCurStream()
@@ -1386,7 +1322,7 @@ bool deleteIpSettings()
 
     if(FlashROMode) {
         ret = SD.exists(ipCfgName);
-        SD.remove(ipCfgName);
+        deleteFileFromSD(ipCfgName);
     } else if(haveFS) {
         ret = MYNVS.exists(ipCfgName);
         MYNVS.remove(ipCfgName);
@@ -1455,7 +1391,7 @@ void moveSettings()
     configOnSD = !configOnSD;
 
     if(configOnSD) {
-        SD.remove(secCfgName);
+        deleteFileFromSD(secCfgName);
     } else {
         MYNVS.remove(secCfgName);
     }
@@ -1676,7 +1612,7 @@ void doCopyAudioFiles()
     }
 
     if(haveSD) {
-        SD.remove("/_installing.mp3");
+        deleteFileFromSD("/_installing.mp3");
     }
 
     if(delIDfile) {
@@ -1700,7 +1636,7 @@ void doCopyAudioFiles()
 void delete_ID_file()
 {
     if(haveSD && ic) {
-        SD.remove(CONFND);
+        deleteFileFromSD(CONFND);
         SD.rename(CONFN, CONFND);
     }
 }
@@ -1771,7 +1707,7 @@ bool openUploadFile(String& fn, File& file, int idx, bool haveAC, int& opType, i
                 Serial.printf("openUploadFile: Deleting %s\n", uploadFileName+8);
                 #endif
                 
-                SD.remove(uploadFileName+8);
+                deleteFileFromSD(uploadFileName+8);
                 
                 #ifdef JB_DBG_BOOT
                 uploadFileName[8] = t;
@@ -1836,7 +1772,7 @@ void removeACFile(int idx)
             #ifdef JB_DBG_BOOT
             Serial.printf("removeACFile: Deleting %s\n", uploadRealFileNames[idx]);
             #endif
-            SD.remove(uploadRealFileNames[idx]);
+            deleteFileFromSD(uploadRealFileNames[idx]);
         }
     }
 }
@@ -1883,7 +1819,7 @@ void renameUploadFile(int idx)
         Serial.printf("renameUploadFile [1]: Deleting %s\n", t);
         #endif
         
-        SD.remove(t);
+        deleteFileFromSD(t);
         
         #ifdef JB_DBG_BOOT
         Serial.printf("renameUploadFile [2]: Renaming %s to %s\n", uploadFileName, t);
@@ -1953,7 +1889,7 @@ static void firmware_update()
     myFile.close();
     // Rename/remove in any case, we don't
     // want an update loop hammer our flash
-    SD.remove(fwfnold);
+    deleteFileFromSD(fwfnold);
     SD.rename(fwfn, fwfnold);
     unmount_fs();
     delay(1000);

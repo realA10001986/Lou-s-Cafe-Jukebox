@@ -21,8 +21,8 @@
 
 // These must not contain any characters other than
 // '0'-'9', 'A'-'Z', '(', ')', '.', '_', '-' or space
-#define JB_VERSION       "V1.05"      // 7 chars max. Do NOT change format.
-#define JB_VERSION_EXTRA "AUG262026"  // 13 chars max
+#define JB_VERSION       "V1.06"      // 7 chars max. Do NOT change format.
+#define JB_VERSION_EXTRA "OCT012026"  // 13 chars max
 
 /*************************************************************************
  ***                           Miscellaneous                           ***
@@ -61,8 +61,8 @@
 #if defined __has_include && __has_include(<esp_arduino_version.h>)
 #include <esp_arduino_version.h>
 #ifdef ESP_ARDUINO_VERSION_MAJOR
-    #if ESP_ARDUINO_VERSION >= ESP_ARDUINO_VERSION_VAL(2,0,8)
-    #define HAVE_GETNEXTFILENAME
+    #if ESP_ARDUINO_VERSION < ESP_ARDUINO_VERSION_VAL(2,0,8)
+    #error "ESP-arduino >= 2.0.8 required"
     #endif
 #endif
 #endif
