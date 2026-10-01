@@ -206,9 +206,11 @@ The MQTT topics and messages for control are configured in the Config Portal und
 
 If the remote player supports a somewhat complete [backchannel](#-remote-player-backchannel), track selection works just like in Music Player mode: Jog dials 1 and 2 select letter and number, pressing the button selects the chosen track and starts play-back. If there is no compatible backchannel, only "play", "stop", "next" and "prev" are supported through the jog dials.
 
+## Sound customization
+
 ### Sound substitution
 
-The Jukebox's built-in sound effects can be substituted by your own sound files stored on the SD card. These files will be played back directly from the SD card during operation, so the SD card has to remain in the slot.
+The Jukebox's built-in sound effects can be substituted by your own sound files stored on the SD card. These files will be played back directly from the SD card during operation.
 
 Your replacements need to be put in the root (top-most) directory of the SD card, be in mp3 format (128kbps max) and named as follows:
 - "alarm.mp3". Played when the alarm sounds (triggered by a Time Circuits Display via BTTFN or MQTT);
@@ -400,7 +402,7 @@ If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">
 
 The firmware comes with a sound-pack which needs to be installed separately. The sound-pack is not updated as often as the firmware itself. There will be a message in the Config Portal and a respective [signal](#appendix-b-led-signals) at startup when/if the sound-pack needs to be updated.
 
-_Installing the sound-pack requires an [SD card](#sd-card)._
+_Installing the sound-pack requires an [SD card](#initial-configuration)._
 
 The first step is to extract "sound-pack-jbXX.zip" (which is included in every [Release package](https://github.com/realA10001986/Jukebox/releases)). It contains one file, named "JBA.bin".
 
