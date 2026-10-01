@@ -30,7 +30,11 @@ For information on installing or updating the firmware of your Jukebox, see [her
 
 >The following instructions only need to be followed once, on fresh Jukeboxes. They do not need to be repeated after a firmware update.
 
-The first step is to put a **good-quality** ("endurance", "industrial", "long life", ...) **microSD card into the card slot**. The maximum size is 32GB and the card must be FAT32 formatted. [More information](#sd-card)
+**Some functions of your Jukebox require an SD card.** The first step is therefore to put a **good-quality** ("endurance", "industrial", "long life", ...) **and empty microSD card into the card slot**. The SD card must be inserted before powering up the Jukebox. It is not recognized if inserted while the Jukebox is running. Furthermore, do not remove the SD card while the Jukebox is powered.
+
+>SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
+
+>Since the SD card on the control board is inaccessible after assembling the Jukebox, installing a microSD extension (like [this one](https://www.amazon.com/Memory-Micro-SD-Female-Extension-Extender/dp/B09MS85FQ3/)) is recommended.
 
 The second step is to establish access to the Jukebox's configuration website ("Config Portal"):
 
@@ -201,14 +205,6 @@ In Remote Mode, the Jukebox can control a remote HomeAssistant/MQTT-enabled musi
 The MQTT topics and messages for control are configured in the Config Portal under [HA/MQTT Settings](#settings-for-remote-mode).  
 
 If the remote player supports a somewhat complete [backchannel](#-remote-player-backchannel), track selection works just like in Music Player mode: Jog dials 1 and 2 select letter and number, pressing the button selects the chosen track and starts play-back. If there is no compatible backchannel, only "play", "stop", "next" and "prev" are supported through the jog dials.
-
-## SD Card
-
->Only SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
-
-The SD card must be inserted before powering up the device. It is not recognized if inserted while the Jukebox is running. Furthermore, do not remove the SD card while the device is powered.
-
-Since the SD card on the control board is inaccessible after assembling the Jukebox, installing a microSD extension (like [this one](https://www.amazon.com/Memory-Micro-SD-Female-Extension-Extender/dp/B09MS85FQ3/)) is recommended.
 
 ### Sound substitution
 
