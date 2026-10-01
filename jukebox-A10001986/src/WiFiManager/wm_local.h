@@ -16,6 +16,8 @@
 //#define _A10001986_DBG
 //#define _A10001986_V_DBG
 
+#define DEVNAME "Jukebox"
+
 #define WM_MDNS
 
 #define WM_50S_STYLE
@@ -39,8 +41,10 @@
 // Show sound upload form (or "SD required" message")
 #define WM_UPLOAD
 
-// Have CarMode
+// Have CarMode - Not on Jukebox
 //#define WM_CCM
+
+#define WM_FWPROT "JUKEBOX"
 
 // #define WM_AP_STATIC_IP
 // #define WM_APCALLBACK
