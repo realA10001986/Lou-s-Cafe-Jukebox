@@ -379,12 +379,6 @@ After WiFi has been switched off due to timer expiration, it can be re-enabled b
 
 > This procedure is also used to trigger a re-connection attempt in case your configured WiFi network was not available when the Jukebox was trying to connect, see [here](#home-setup-with-a-pre-existing-local-wifi-network).
 
-## Flash Wear
-
-Flash memory has a somewhat limited lifetime. It can be written to only between 10.000 and 100.000 times before becoming unreliable. The firmware writes to the internal flash memory when saving settings and other data. Every time you change settings, data is written to flash memory.
-
-In order to reduce the number of write operations and thereby prolong the life of your Jukebox, it is recommended to use a good-quality SD card and to check **_[Save secondary settings on SD](#-save-secondary-settings-on-sd)_** in the Config Portal; secondary settings are then stored on the SD card (which also suffers from wear but is easy to replace). See [here](#-save-secondary-settings-on-sd) for more information.
-
 ## Firmware Installation / Firmware Update
 
 If a previous version of the Jukebox firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update & Upload", select the pre-compiled binary file ("**jukebox-A10001986-Vx.xxx.bin**") provided in the [Release package](https://github.com/realA10001986/Jukebox/releases), and click on *Update*.
