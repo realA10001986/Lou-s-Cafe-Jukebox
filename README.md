@@ -381,7 +381,12 @@ After WiFi has been switched off due to timer expiration, it can be re-enabled b
 
 ## Firmware Installation / Firmware Update
 
-If a previous version of the Jukebox firmware is installed on your device, you can update easily using the pre-compiled binary. Enter the [Config Portal](#the-config-portal), click on "Update & Upload", select the pre-compiled binary file ("**jukebox-A10001986-Vx.xxx.bin**") provided in the [Release package](https://github.com/realA10001986/Jukebox/releases), and click on *Update*.
+To update the firmware of your Jukebox, 
+- download the firmware file provided in the [Release package](https://github.com/realA10001986/Jukebox/releases) ("**jukebox-A10001986-Vx.xxx.bin**")
+- enter the [Config Portal](#the-config-portal),
+- click on "Update & Upload",
+- select the downloaded firmware file in the _top_ file selector, and
+- click on *Update*.
 
 <details>
 <summary>Installing on a fresh ESP32...</summary>
@@ -435,13 +440,11 @@ This leads to the [HomeAssistant/MQTT Settings page](#hamqtt-settings).
 
 This leads to the firmware update and audio upload page.
 
-To upload a new firmware, such as published in the [Release packages](https://github.com/realA10001986/Jukebox/releases), select the "**jukebox-A10001986-Vx.xxx.bin**" file as contained in the Release package in the _top_ file selector and click *Update*.
+See [here](#firmware-installation--firmware-update) for firmware update instructions.
 
-You can also install the Jukebox's sound-pack on this page; download the sound-pack (which is included in every [Release package](https://github.com/realA10001986/Jukebox/releases)), extract it and select the resulting JBA.bin file in the _bottom_ file selector. Finally, click *Upload*. An SD card is required for this operation.
-
-See also [here](#firmware-installation--firmware-update).
-
-Finally, this page is also for uploading [replacement sound files](#installing-replacement-audio-files) to the SD card. Select an mp3 file in the _bottom_ file selector and click *Upload*. (Maximum 16 files at a time.)
+This page is also for uploading [custom or replacement sound files](#installing-custom--replacement-audio-files) to the SD card:
+- Select one or more mp3 file(s) in the _bottom_ file selector (max 16 files at a time) and
+- click *Upload*.
 
 ---
 
