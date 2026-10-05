@@ -381,11 +381,18 @@ After WiFi has been switched off due to timer expiration, it can be re-enabled b
 
 ## Firmware Installation / Firmware Update
 
-To update the firmware of your Jukebox, 
-- download the firmware file provided in the [Release package](https://github.com/realA10001986/Jukebox/releases) ("**jukebox-A10001986-Vx.xxx.bin**")
+The firmware consists of two parts: The main firmware, and a sound-pack.
+
+First, download main firmware and sound-pack. Both files are in every [Release package](https://github.com/realA10001986/Jukebox/releases/latest), and named
+- "**jukebox-A10001986-Vx.xx.bin**", and
+- "**sound-pack-jbXX.zip**".
+
+### Main firmware
+
+To update the main firmware of your Jukebox, 
 - enter the [Config Portal](#the-config-portal),
 - click on "Update & Upload",
-- select the downloaded firmware file in the _top_ file selector, and
+- select the downloaded main firmware file in the _top_ file selector, and
 - click on *Update*.
 
 <details>
@@ -393,17 +400,18 @@ To update the firmware of your Jukebox,
 If you are using a fresh ESP32, please go <a href="https://install.out-a-ti.me">here</a> and follow the instructions or - if you are a nerd and want to deal with source code, compilers'n'stuff - see <a href="https://github.com/realA10001986/Jukebox/blob/master/jukebox-A10001986/jukebox-A10001986.ino">jukebox-A10001986.ino</a> for detailed build and upload information.
 </details>
 
-*After a firmware update, the red LED might blink for short while after reboot. Do NOT unplug the device during this time.*
-
 ### Sound-pack installation
 
-The firmware comes with a sound-pack which needs to be installed separately. The sound-pack is not updated as often as the firmware itself. There will be a message in the Config Portal and a respective [signal](#appendix-b-led-signals) at startup when/if the sound-pack needs to be updated.
+After updating the main firmware, there will be a notification on the Config Portal (and the red LED will signal "SOS", ie three short blinks, three long blinks, three short blinks, during boot) when/if the sound-pack also needs to be updated. 
 
 _Installing the sound-pack requires an [SD card](#initial-configuration)._
 
-The first step is to extract "sound-pack-jbXX.zip" (which is included in every [Release package](https://github.com/realA10001986/Jukebox/releases)). It contains one file, named "JBA.bin".
-
-Next, head to the [Config Portal](#the-config-portal), click on "Update & Upload", select the "JBA.bin" file in the _bottom_ file selector and click on *Upload*.
+To update the sound-pack of your Jukebox, 
+- extract the downloaded zip file. It contains one file named JBA.bin.
+- enter the [Config Portal](#the-config-portal),
+- click on "Update & Upload",
+- select the JBA.bin file in the _bottom_ file selector, and
+- click on *Upload*.
 
 <details>
 <summary>Alternative way</summary>
