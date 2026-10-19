@@ -385,7 +385,7 @@ The firmware consists of two parts: The main firmware, and a sound-pack.
 
 First, download main firmware and sound-pack. Both files are in every [Release package](https://github.com/realA10001986/Jukebox/releases/latest), and named
 - "**jukebox-A10001986-Vx.xx.bin**", and
-- "**sound-pack-jbXX.zip**".
+- "**JBA-JBxx.bin**".
 
 ### Main firmware
 
@@ -407,16 +407,15 @@ After updating the main firmware, there will be a notification on the Config Por
 _Installing the sound-pack requires an [SD card](#initial-configuration)._
 
 To update the sound-pack of your Jukebox, 
-- extract the downloaded zip file. It contains one file named JBA.bin.
 - enter the [Config Portal](#the-config-portal),
 - click on "Update & Upload",
-- select the JBA.bin file in the _bottom_ file selector, and
+- select the JBA-JBxx.bin file in the _top_ file selector, and
 - click on *Upload*.
 
 <details>
 <summary>Alternative way</summary>
 Alternatively, you can install the sound-pack the following way:
-- Using a computer, copy "JBA.bin" to the root directory of a FAT32 formatted SD card;
+- Using a computer, copy "JBA-JBxx.bin" to the root directory of a FAT32 formatted SD card and rename it to "JBA.bin",
 - power down the Jukebox,
 - insert this SD card into the slot and 
 - power up the Jukebox; the sound-pack will be installed automatically.
@@ -506,7 +505,7 @@ WiFI channel selection is key for a trouble-free operation. Disturbed WiFi commu
 
 If a WiFi Scan was done (which can be triggered by clicking "Scan for Networks"), 
 
-- a list of networks is displayed at the top of the page; click "Show All" to list all networks including their channel;
+- a list of networks is displayed at the top of the page; click "Show All APs" to list all APs including their channel;
 - a "proposed channel" is displayed near the "WiFi channel" drop-down, based on a rather simple heuristic. The banner is green when a channel is excellent, grey when it is impeded by overlapping channels, and when that banner is red operation in AP mode is not recommended due to channels all being used.
 
 The channel proposition is based on all WiFi networks found; it does not take non-WiFi equipment (baby monitors, cordless phones, Bluetooth devices, microwave ovens, etc) into account.
