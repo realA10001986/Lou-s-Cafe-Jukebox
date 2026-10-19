@@ -4,6 +4,7 @@
  * (C) 2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/Jukebox
  * https://jukebox.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * Sound handling
  *
@@ -151,8 +152,6 @@ static void     mpren_insertionSort(char **a, int n);
  */
 void audio_setup()
 {
-    unsigned int sps = 0;
-    uint32_t tbuf[3];
     #ifdef JB_DBG_AUDIO
     audioLogger = &Serial;
     #endif
@@ -258,6 +257,21 @@ static int32_t skipID3(uint8_t *buf)
     return 0;
 }
 
+static void audioCancel()
+{
+    play_flags = 0;
+}
+
+static bool audioBegin(AudioFileSourceLoop *src, AudioGenerator *gen)
+{
+    if(!gen->begin(src, out)) {
+        gen->stop();  // frees buffers, stops i2c, closes file
+        audioCancel();
+        return false;
+    }
+    return true;
+}
+
 static void setupLoopAndBegin(AudioFileSourceLoop *src, uint32_t flags)
 {
     int32_t pos = 0;
@@ -280,7 +294,7 @@ static void setupLoopAndBegin(AudioFileSourceLoop *src, uint32_t flags)
         src->seek(pos, SEEK_SET);
     }
     src->setStartPos(pos);
-    mp3->begin(src, out);
+    audioBegin(src, mp3); //mp3->begin(src, out);
 }
 
 void play_file(const char *audio_file, uint32_t flags, float volumeFactor)
@@ -316,9 +330,9 @@ void play_file(const char *audio_file, uint32_t flags, float volumeFactor)
             segList[i] = ((const int16_t *)audio_file)[i];
         }
         if(srcSC && srcSC->open_c(sc_fn, (const int16_t *)segList)) {
-            mp3->begin(srcSC, out);
+            audioBegin(srcSC, mp3); //mp3->begin(srcSC, out);
         } else {
-            play_flags = 0;
+            audioCancel();
         }
     } else if(haveSD && ((flags & PA_ALLOWSD) || FlashROMode) && mySD0->open(audio_file)) {
         setupLoopAndBegin(mySD0, flags|PA_DOID3TS);
@@ -331,7 +345,7 @@ void play_file(const char *audio_file, uint32_t flags, float volumeFactor)
         Serial.println("Playing from flash FS");
         #endif
     } else {
-        play_flags = 0;
+        audioCancel();
         #ifdef JB_DBG_AUDIO
         Serial.println("Audio file not found");
         #endif
@@ -483,7 +497,7 @@ static void checkForSC()
     bool srcMedium;
     
     if((sps = check_file_len(sc_fn, srcMedium, (uint8_t *)&tbuf[0], 12))) {
-        if((tbuf[0] == sc_magic) && (tbuf[1] == sps ^ sc_magic)) {
+        if((tbuf[0] == sc_magic) && (tbuf[1] == (sps ^ sc_magic))) {
             if(srcMedium) srcSC = myFS0;
             else          srcSC = mySD0;
         }
@@ -926,7 +940,7 @@ int mp_checkForFolder(int num)
 {
     char fnbuf[32];
     char fnbuf2[32];
-    int  flen, t;
+    int  t;
 
     // returns 
     // 1 if folder is ready (valid cache file, 0-99)
@@ -943,7 +957,6 @@ int mp_checkForFolder(int num)
         return 0;
 
     mp_buildFolderName(fnbuf, num);
-    flen = strlen(fnbuf);
 
     mp_buildCacheName(fnbuf2, num);
     

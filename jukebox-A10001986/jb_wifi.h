@@ -5,6 +5,7 @@
  * (C) 2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/Jukebox
  * https://jukebox.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * WiFi and Config Portal handling
  *

@@ -4,6 +4,7 @@
  * (C) 2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/Jukebox
  * https://jukebox.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * -------------------------------------------------------------------
  * License: Modified MIT NON-AI
@@ -140,7 +141,15 @@
 
 /*  Changelog
  *  
- *  2026/10/xx (A10001986) [1.06]
+ *  2026/10/19 (A10001986) [2.00]
+ *    - Re-arrange WiFi Configuration page for a better user experience
+ *    - New sound-pack (JB04). Sound-pack data format changed.
+ *    - Future firmware updates may only consist of one single file instead of "main 
+ *      firmware" plus "sound-pack". Firmware updates will require an SD card.
+ *      Future sound-pack uploads, if any, are done through the top file selector, and
+ *      no longer through the bottom one. The bottom one is for custom mp3 file upload
+ *      only.x
+ *  2026/10/01 (A10001986) [1.06]
  *    - Fix minor issues with ID3v1 tags
  *    - Music Player: The "TCD_DONE.TXT" file is now obsolete. The firmware instead uses
  *      a cache file in the top-most folder of the SD card ("musicXc") which needs to be

@@ -4,6 +4,7 @@
  * (C) 2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/Jukebox
  * https://jukebox.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * Global definitions
  */
@@ -21,8 +22,8 @@
 
 // These must not contain any characters other than
 // '0'-'9', 'A'-'Z', '(', ')', '.', '_', '-' or space
-#define JB_VERSION       "V1.06"      // 7 chars max. Do NOT change format.
-#define JB_VERSION_EXTRA "OCT012026"  // 13 chars max
+#define JB_VERSION       "V2.00"      // 7 chars max. Do NOT change format.
+#define JB_VERSION_EXTRA "OCT192026"  // 13 chars max
 
 /*************************************************************************
  ***                           Miscellaneous                           ***

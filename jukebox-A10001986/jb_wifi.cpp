@@ -4,6 +4,7 @@
  * (C) 2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/Jukebox
  * https://jukebox.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * WiFi and Config Portal handling
  *
@@ -66,15 +67,13 @@
 
 #define STRLEN(x) (sizeof(x)-1)
 
-Settings settings;
-
-IPSettings ipsettings;
-
 WiFiManager wm;
 
 WiFiClient mqttWClient;
 PubSubClient mqttClient(mqttWClient);
 unsigned long mqttInitialConnectNow = 0;
+
+#define CFMAGIC "JBCF"
 
 static const char R_updateacdone[] = "/uac";
 
@@ -85,7 +84,7 @@ static const char acul_part7[]  = " S' id='lc'><strong>Upload complete.</strong>
 static const char acul_part7a[] = "<br>Installation will proceed after reboot.";
 static const char acul_part71[] = " D'><strong>Upload failed.</strong><br>";
 static const char acul_part8[]  = "</div></div></body></html>";
-static const char *acul_errs[]  = { 
+static const char * const acul_errs[]  = { 
     "Can't open file on SD",
     "No SD card found",
     "Write error",
@@ -105,7 +104,7 @@ static const char tcdAPPW1[] = "no";
 static const char tcdAPPW2[] = "a";
 #endif
 
-static const char *apChannelCustHTMLSrc[14] = {
+static const char * const apChannelCustHTMLSrc[14] = {
     "'>WiFi channel",
     "apchnl",
     ">Random%s1'",
@@ -122,7 +121,7 @@ static const char *apChannelCustHTMLSrc[14] = {
     ">11%s"
 };
 
-static const char *mqttpCustHTMLSrc[4] = {
+static const char * const mqttpCustHTMLSrc[4] = {
     "'>Protocol version",
     "mprot",
     ">3.1.1%s1'",
@@ -140,9 +139,11 @@ static const char mqttMsgBadCred[] = "Login failed";
 static const char mqttMsgGenError[] = "Error";
 static const char msgResolvErr[] = "DNS lookup error";    // MQTT
 
+#ifdef WM_CCM
 static const char *wmBuildTCDAPList(const char *dest, int op);
 static const char *wmBuildTCDSSID(const char *dest, int op);
 static const char *wmBuildTCDPW(const char *dest, int op);
+#endif
 static const char *wmBuildApChnl(const char *dest, int op);
 static const char *wmBuildBestApChnl(const char *dest, int op);
 static const char *wmBuildHaveSD(const char *dest, int op);
@@ -178,7 +179,7 @@ static const char mqttStatus[] = "%s%s%s%s%s (%d)</div>";
 // If first parameter does not have SECTS or SECTS_HEAD set, the WiFi Connection settings section will be left open
 WiFiManagerParameter custom_wifiConRetries("Connection attempts (1-10)", settings.wifiConRetries, 2, "type='number' min='1' max='10'");
 
-WiFiManagerParameter custom_hostName("Hostname<br><span>Your Jukebox's network ID. Used for the Config Portal URL and HA/MQTT.<br>Config Portal URL: http://<i>hostname</i>.local<br>Valid characters: a-z/0-9/-</span>", settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='" DEF_HOSTNAME "'", WFM_SECTS|WFM_LABEL_BEFORE);
+WiFiManagerParameter custom_hostName("Hostname<br><span>Your Jukebox's ID on the network.<br>This ID determines the Config Portal URL: http://<i>hostname</i>.local<br>Valid characters: a-z/0-9/-</span>", settings.hostName, 31, "pattern='[A-Za-z0-9\\-]+' placeholder='" DEF_HOSTNAME "'", WFM_SECTS|WFM_LABEL_BEFORE);
 
 #ifdef WM_CCM
 WiFiManagerParameter custom_asel(wmBuildTCDAPList);
@@ -344,7 +345,6 @@ static unsigned int wmLenBuf = 0;
 
 static void wifiOff(bool force);
 static void wifiConnect(bool deferConfigPortal = false);
-static void wifi_ntp_setup(bool doUseNTP);
 static void checkForUpdate();
 
 static void saveParamsCallback(int);
@@ -354,7 +354,9 @@ static void postUpdateCallback(bool);
 static void wifiDelayReplacement(unsigned int mydel);
 static void gpCallback(int);
 static bool preWiFiScanCallback();
+#ifdef WM_CCM
 static void setCMCallback(bool enable);
+#endif
 
 static void updateConfigPortalValues();
 
@@ -363,16 +365,21 @@ static void handleUploadDone();
 static void handleUploading();
 static void handleUploadDone();
 
+static bool openDataFileCallback();
+static bool writeDataFileCallback(uint8_t *buf, size_t len);
+static void closeDataFileCallback(bool del);
+static bool idCFCallback(uint8_t *dbuf, size_t len);
+
 static IPAddress stringToIp(char *str);
 static void getServerParam(const char *name, char *destBuf, size_t length, int minval, int maxval, int defaultVal);
 static bool myisspace(char mychar);
 static char *strcpytrim(char* destination, const char* source, bool doFilter = false);
+#ifdef WM_CCM
 static char *strcpytrimMAC(char* destination, const char* source);
-static char *strcpyfilter(char* destination, const char* source);
+#endif
 static void mystrcpy(char *sv, WiFiManagerParameter *el);
 static void mystrcpyWiFiDelay(char *sv, WiFiManagerParameter *el);
 static void evalCB(char *sv, WiFiManagerParameter *el);
-static void setCBVal(WiFiManagerParameter *el, char *sv);
 static void strcpyutf8(char *dst, const char *src, unsigned int len);
 static void handleStream(int idx);
 
@@ -503,6 +510,10 @@ void wifi_setup()
     wm.setSaveParamsCallback(saveParamsCallback);
     wm.setPreOtaUpdateCallback(preUpdateCallback);
     wm.setPostOtaUpdateCallback(postUpdateCallback);
+    if(haveSD) {
+        wm.setPackedOTACallbacks(openDataFileCallback, writeDataFileCallback, closeDataFileCallback);
+    }
+    wm.setIdDfCallback(idCFCallback, idSpCallback);
     wm.setWebServerCallback(setupWebServerCallback);
     wm.setDelayReplacement(wifiDelayReplacement);
     wm.setGPCallback(gpCallback);
@@ -999,7 +1010,7 @@ static void wifiConnect(bool deferConfigPortal)
     // Connect using saved credentials if they exist
     // If connection fails it starts an access point with the specified name
     if(wm.wifiConnect(mssid, mpass, mbssid, realAPName, settings.appw)) {
-        #ifdef FC_DBG
+        #ifdef JB_DBG_BOOT
         Serial.println("WiFi connected");
         #endif
 
@@ -1105,7 +1116,6 @@ static void wifiOff(bool force)
 
 void wifiOn(unsigned long newDelay, bool alsoInAPMode, bool deferCP)
 {
-    unsigned long desiredDelay;
     unsigned long Now = millis();
     
     // wifiON() is called when holding the middle button for 2 seconds while
@@ -1505,7 +1515,7 @@ static void updateConfigPortalValues()
     wm.updateParameters(WM_PARM_SETTINGS3);
 }
 
-static unsigned int calcSelectMenu(const char **theHTML, int cnt, char *setting, bool indent = false)
+static unsigned int calcSelectMenu(const char * const *theHTML, int cnt, char *setting, bool indent = false)
 {
     int sr = atoi(setting);
 
@@ -1528,7 +1538,7 @@ static unsigned int calcSelectMenu(const char **theHTML, int cnt, char *setting,
     return l + 8;
 }
 
-static void buildSelectMenu(char *target, const char **theHTML, int cnt, char *setting, bool indent = false)
+static void buildSelectMenu(char *target, const char * const *theHTML, int cnt, char *setting, bool indent = false)
 {
     int sr = atoi(setting);
 
@@ -1547,7 +1557,7 @@ static void buildSelectMenu(char *target, const char **theHTML, int cnt, char *s
     }
 }
 
-static const char *wmBuildSelect(const char *dest, int op, const char **src, int count, char *setting, bool indent = false)
+static const char *wmBuildSelect(const char *dest, int op, const char * const *src, int count, char *setting, bool indent = false)
 {
     if(op == WM_CP_DESTROY) {
         if(dest) free((void *)dest);
@@ -2056,7 +2066,7 @@ static void handleUploadDone()
         if(opType[i] > 0) {
             haveAC = true;
             if(!ACULerr[i]) {
-                if(!check_if_default_audio_present()) {
+                if(!check_for_new_sp()) {
                     haveAC = false;
                     ACULerr[i] = UPL_BADERR;
                     removeACFile(i);
@@ -2097,7 +2107,7 @@ static void handleUploadDone()
     buflen += 8;
 
     if(!(buf = (char *)malloc(buflen))) {
-        buf = (char *)(haveErrs ? ebuf : dbuf);
+        buf = (char *)((!haveSD || haveErrs) ? ebuf : dbuf);
     } else {
         strcpy(buf, wm.getHTTPSTART(titStart));
         if(titStart >= 0) {
@@ -2148,13 +2158,61 @@ static void handleUploadDone()
 
     freeUploadFileNames();
     
-    String str(buf);
-    wm.server->send(200, "text/html", str);
+    wm.server->send(200, "text/html", buf);
 
     // Reboot required even for mp3 upload, because for most files, we check
     // during boot if they exist (to avoid repeatedly failing open() calls)
 
     doReboot();
+}
+
+static bool openDataFileCallback()
+{
+    String fn = ".bin";
+    
+    if(!numUploads) {
+        allocUplArrays();
+    } else {
+        return false;
+    }
+
+    haveACFile = openUploadFile(fn, acFile, numUploads, haveAC, opType[numUploads], ACULerr[numUploads]);
+
+    return haveACFile;
+}
+
+static bool writeDataFileCallback(uint8_t *buf, size_t len)
+{
+    bool ret = false;
+    if(haveACFile) {
+        if(writeACFile(acFile, buf, len) != len) {
+            doCloseACFile(numUploads, true);
+            ACULerr[numUploads] = UPL_WRERR;
+        } else {
+            ret = true;
+        }
+    }
+    return ret;
+}
+
+static void closeDataFileCallback(bool del)
+{
+    doCloseACFile(numUploads, del);
+    
+    if(!del && opType[numUploads] >= 0) {
+        renameUploadFile(numUploads);
+    }
+    
+    numUploads++;
+}
+
+static bool idCFCallback(uint8_t *dbuf, size_t len)
+{
+    if(len > 4) {
+        return !strncmp((char *)dbuf, CFMAGIC, 4);
+    }
+
+    return false;
 }
 
 /*
@@ -2171,9 +2229,9 @@ int wifi_getStatus()
           return 0x10003;     // AP/STA MIXED
       case WIFI_MODE_NULL:
           return 0x10001;     // OFF
+      default:
+          return 0x10002;     // UNKNOWN
     }
-
-    return 0x10002;           // UNKNOWN
 }
 
 bool wifi_getIP(uint8_t& a, uint8_t& b, uint8_t& c, uint8_t& d)
@@ -2271,7 +2329,7 @@ static bool isNumString(char *s)
 
 static void getServerParam(const char *name, char *destBuf, size_t length, int minval, int maxval, int defaultVal)
 {
-    int i;
+    int i = defaultVal;
     memset(destBuf, 0, length + 1);
     strncpy(destBuf, wm.server->arg(name).c_str(), length);
     if(*destBuf) {
@@ -2293,31 +2351,12 @@ static bool myisgoodchar(char mychar)
     return ((mychar >= '0' && mychar <= '9') || (mychar >= 'a' && mychar <= 'z') || (mychar >= 'A' && mychar <= 'Z') || mychar == '-');
 }
 
-static bool myisgoodchar2(char mychar)
-{
-    return ((mychar == ' '));
-}
-
 static char* strcpytrim(char* destination, const char* source, bool doFilter)
 {
     char *ret = destination;
     
     while(*source) {
         if(!myisspace(*source) && (!doFilter || myisgoodchar(*source))) *destination++ = *source;
-        source++;
-    }
-    
-    *destination = 0;
-    
-    return ret;
-}
-
-static char* strcpyfilter(char *destination, const char *source)
-{
-    char *ret = destination;
-    
-    while(*source) {
-        if(myisgoodchar(*source) || myisgoodchar2(*source)) *destination++ = *source;
         source++;
     }
     
@@ -2367,11 +2406,6 @@ static void evalCB(char *sv, WiFiManagerParameter *el)
     *sv = 0;
 }
 
-static void setCBVal(WiFiManagerParameter *el, char *sv)
-{   
-    el->setValue((*sv == '0') ? "0" : "1");
-}
-
 static unsigned int UTF8ByteSeqLen(unsigned char c)
 {
     if(c >= 192 && c < 224) return 1;
@@ -2382,7 +2416,7 @@ static unsigned int UTF8ByteSeqLen(unsigned char c)
 
 int filterOutUTF8(char *src, char *dst, int srcLen = 0, int maxChars = 99999)
 {
-    unsigned int i, j, e, slen = srcLen ? srcLen : strlen(src);
+    unsigned int i, j, slen = srcLen ? srcLen : strlen(src);
     unsigned char c;
 
     for(i = 0, j = 0; i < slen && j < maxChars; i++) {
@@ -2452,7 +2486,6 @@ static void handleStream(int idx)
 
 static void handleMQTTTopMsg(int idx)
 {
-    int sz;
     char buf[10];
 
     // We don't allow the single quote (') since it messes

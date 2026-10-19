@@ -4,6 +4,7 @@
  * (C) 2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/Jukebox
  * https://jukebox.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * Main controller
  *
@@ -167,7 +168,6 @@ static struct mp_rem_stat rem_stat;
 static int    remFirstTrack = 0, remLastTrack = 0;
 static bool   remActiveInt = false, remShuffleInt = false;
 static int    remTargetTrack = 0, remTargetLtr = 0, remTargetNum = 0;
-static int    remVolPerc = 0;
 static bool   remAllowShuffleSignal = false;
 bool          remIncI = false;
 
@@ -206,11 +206,7 @@ static unsigned long opmchgnow = 0;
 static bool          nmOld = false;
 
 #define INPUTLEN_MAX 6
-static char          inputBuffer[INPUTLEN_MAX + 2];
-static char          inputBackup[INPUTLEN_MAX + 2];
-static int           inputIndex = 0;
-static bool          inputRecord = false;
-static unsigned long lastKeyPressed = 0;
+static char inputBuffer[INPUTLEN_MAX + 8];
 
 // BTTF network
 #define BTTFN_VERSION              1
@@ -265,7 +261,6 @@ static UDP*          jbMcUDP;
 static byte          BTTFUDPBuf[BTTF_PACKET_SIZE];
 static byte          BTTFUDPTBuf[BTTF_PACKET_SIZE];
 static unsigned long BTTFNUpdateNow = 0;
-static unsigned long bttfnJBPollInt = BTTFN_POLL_INT;
 static unsigned long BTTFNTSRQAge = 0;
 static unsigned long BTTFNLastCmdSent = 0;
 static bool          BTTFNPacketDue = false;
@@ -275,10 +270,10 @@ static uint32_t      BTTFUDPID = 0;
 static unsigned long lastBTTFNpacket = 0;
 static unsigned long lastBTTFNKA = 0;
 static unsigned long bttfnLastNotData = 0;
+static unsigned long BTTFNstartPolling = 0;
 static bool          BTTFNBootTO = false;
 static bool          haveTCDIP = false;
 static IPAddress     bttfnTcdIP;
-static uint32_t      bttfnTCDSeqCnt = 0;
 static uint32_t      bttfnTCDDataSeqCnt = 0;
 static uint32_t      bttfnSessionID = 0;
 int                  bttfnHaveTCDSSID = 0;
@@ -288,6 +283,7 @@ static uint8_t       bttfnReqStatus = 0x50; // Request capabilities, status
 static bool          TCDSupportsNOTData = false;
 static bool          TCDSupportsSSID = false;
 static bool          bttfnDataNotEnabled = false;
+static bool          BTTFNstopGrowInt = false;
 static uint32_t      tcdHostNameHash = 0;
 static byte          BTTFMCBuf[BTTF_PACKET_SIZE];
 static IPAddress     bttfnMcIP(224, 0, 0, 224);
@@ -447,11 +443,11 @@ void main_setup()
     // Invoke audio file installer if SD content qualifies
     if(check_allow_CPA()) {
         showWaitSequence();
-        if(prepareCopyAudioFiles()) {
+        if(prepare_install_sp()) {
             play_file("/_installing.mp3", PA_ALLOWSD);
             waitAudioDone();
         }
-        doCopyAudioFiles();
+        do_install_sp();
         // We never return here. The ESP is rebooted.
     }
 
@@ -966,6 +962,8 @@ void main_loop()
              (!BTTFNBootTO && !lastBTTFNpacket && (now - powerupMillis > 60*1000))) ) {
             if(useNM) tcdNM = false;
             lastBTTFNpacket = 0;
+            BTTFNstartPolling = millis();
+            BTTFNstopGrowInt = false;
             BTTFNBootTO = true;
         }
     }
@@ -1174,9 +1172,12 @@ static bool rem_goto(int ltr, int num)
     char tltr[4]  = "A";
     char tnum[4]  = "10";
     char tnum2[4] = "10";
-    char tnumber[8];
-    char tnumber3[8];
-    char tnumber4[8];
+    char tnumber[32];
+    char tnumber3[32];
+    char tnumber4[32];
+
+    if(ltr > 9) ltr %= 10;
+    if(num > 9) num %= 10;
 
     int songNum = ((ltr * 10) + num) + remFirstTrack;
     
@@ -1808,38 +1809,33 @@ static void handleRemoteCommand()
         return;
         
     }
-     
+    
+    sprintf(inputBuffer, "%d", command);
+
+    /* Since none of our commands start with a 0 anymore, 
+     * we can simplify this.
     if(command < 100) {
-  
         sprintf(inputBuffer, "%02d", command);
-        
     } else if(command < 1000) {
-      
         sprintf(inputBuffer, "%03d", command);
-
     } else if(command < 10000) {
-      
         sprintf(inputBuffer, "%04d", command);
-        
     } else if(command < 100000) {
-
         sprintf(inputBuffer, "%05d", command);
-        
     } else {
-      
         sprintf(inputBuffer, "%06d", command);
-
     }
+    */
 
     doInpReaction = execute(injected);
 
+    // TODO reaction?
 }
 
 static int execute(bool injected)
 {
     int  doInpReaction = 0;
-    uint16_t temp;
-    unsigned long now = millisNonZero();
+    int  cmd = atoi(inputBuffer);
 
     switch(strlen(inputBuffer)) {
 
@@ -1849,8 +1845,7 @@ static int execute(bool injected)
         break;
 
     case 2:
-        temp = atoi(inputBuffer);
-        switch(temp) {
+        switch(cmd) {
         case 20:                                      // 20: Switch to Music Player mode
             if(!(csf & CSF_OFF)) {
                 if(opMode != 0) {
@@ -1884,8 +1879,8 @@ static int execute(bool injected)
             }
             break;
         default:                                      // 50 - 69 Set music folder number (50-59=A-K, 60-69=1-10)
-            if(haveSD && temp >= 50 && temp <= 69) {
-                if(switchMusicFolder(temp - 50)) {
+            if(haveSD && cmd >= 50 && cmd <= 69) {
+                if(switchMusicFolder(cmd - 50)) {
                     doInpReaction = 1;
                 }
             } else {
@@ -1896,18 +1891,17 @@ static int execute(bool injected)
         break;
 
     case 3:
-        temp = atoi(inputBuffer);
-        if(temp >= 300 && temp < (300 + VOL_LEVELS)) {
+        if(cmd >= 300 && cmd < (300 + VOL_LEVELS)) {
 
             if(!(csf & CSF_OFF)) {
               
-                temp -= 300;                              // 300-320: Set volume level
+                cmd -= 300;                              // 300-320: Set volume level
     
                 switch(opMode) {
                 case 0:
                 case 1:
-                    if(aud_state.curVolume != temp) {
-                        aud_state.curVolume = temp;
+                    if(aud_state.curVolume != cmd) {
+                        aud_state.curVolume = cmd;
                         volWasChanged();
                     }
                     break;
@@ -1921,10 +1915,10 @@ static int execute(bool injected)
 
             }
             
-        } else if(temp >= 501 && temp <= 509) {       // 501-509 play keyX [disabled]
+        } else if(cmd >= 501 && cmd <= 509) {       // 501-509 play keyX [disabled]
 
             if(!(csf & CSF_OFF) && !mpActive && !st_active()) {
-                doKeySound(temp - 500);
+                doKeySound(cmd - 500);
             }
             doInpReaction = 1;
             
@@ -1932,12 +1926,12 @@ static int execute(bool injected)
 
             if(!(csf & CSF_OFF)) {
             
-                switch(temp) {
+                switch(cmd) {
                 case 222:                             // 222/555 Disable/enable shuffle
                 case 555:
                     switch(opMode) {
                     case 0:
-                        mp_makeShuffle((temp == 555));
+                        mp_makeShuffle((cmd == 555));
                         jbLED.specialSignal(aud_state.mpShuffle ? JBSEQ_SHUFFLE_ON : JBSEQ_SHUFFLE_OFF);
                         play_file(aud_state.mpShuffle ? "/shuffleon.mp3" : "/shuffleoff.mp3", PA_CHECKNM|PA_ALLOWSD);
                         if(!(csf & CSF_NOMUSIC)) {
@@ -1949,7 +1943,7 @@ static int execute(bool injected)
                     case 2:
                         if(*settings.mqmpt[MQ_SHU1] && *settings.mqmpt[MQ_SHU0]) {
                             if(!remHaveStatus || !rem_stat.off) {
-                                remShuffleInt = (temp == 555);
+                                remShuffleInt = (cmd == 555);
                                 rem_shuffle(remShuffleInt);
                                 if(rem_stat.validFields & RMPS_SHUFFLE) {
                                     remAllowShuffleSignal = true;
@@ -1962,7 +1956,6 @@ static int execute(bool injected)
                         } else doInpReaction = -1;
                         break;
                     }
-                    
                     break;
                 case 888:                             // 888 go to track/stream A 1
                     doInpReaction = -1;
@@ -2006,15 +1999,15 @@ static int execute(bool injected)
 
             if(!(csf & CSF_OFF)) {
               
-                temp = atoi(inputBuffer) - 1000;
+                cmd -= 1000;
 
-                if(temp >= 8000 && temp <= 8100) {
+                if(cmd >= 8000 && cmd <= 8100) {
 
-                    if(opMode == 2) rem_vol_set(temp - 8000);
+                    if(opMode == 2) rem_vol_set(cmd - 8000);
 
                 } else {
 
-                    switch(temp) {
+                    switch(cmd) {
                     case 2: 
                         doMPPlay();
                         break;
@@ -2033,7 +2026,7 @@ static int execute(bool injected)
                     case 18:
                     case 19:
                         if(!useNM || !bttfn_connected()) {
-                            tcdNM = (temp == 19);
+                            tcdNM = (cmd == 19);
                         }
                         break;
                     case 8101:
@@ -2050,7 +2043,7 @@ static int execute(bool injected)
         break;
         
     case 5:
-        switch(atoi(inputBuffer)) {
+        switch(cmd) {
         case 53281:
             showUpdAvail = !showUpdAvail;
             saveUpdAvail();
@@ -2071,7 +2064,7 @@ static int execute(bool injected)
     case 6:
         if(!strncmp(inputBuffer, "888", 3)) {        // 888xxx go to song/stream xxx
             if(!(csf & CSF_OFF)) {
-                int tnum = ((inputBuffer[3] - '0') * 100) + read2digs(4);
+                int tnum = cmd - 888000; //((inputBuffer[3] - '0') * 100) + read2digs(4);
                 if(tnum >= 0 && tnum <= 99) {
                     int ltr = tnum / 10;
                     int num = tnum % 10;
@@ -2135,9 +2128,9 @@ static int execute(bool injected)
                     }
                 }
             } else doInpReaction = -1;
-        } else if(!strcmp(inputBuffer, "123456") && !injected) {
+        } else if(cmd == 123456) {    //!strcmp(inputBuffer, "123456") && !injected) {
             reset_IP_and_WIFIAPPW();                  // 123456 deletes IP settings and clears WiFi PW
-            doInpReaction = 1;                        // (and reboots and anything actually changed)
+            doInpReaction = 1;                        // (and reboots if anything actually changed)
         } else {
             doInpReaction = -1;
         }
@@ -2652,6 +2645,9 @@ static void jbButtonEventHandler(int idx, ButtonState bstate)
             } 
             break;
         }
+        break;
+
+    default:    // Silence compiler
         break;
     }
 }
@@ -3168,6 +3164,27 @@ static bool BTTFNSendRequest()
     return true;
 }
 
+static unsigned long BTTFNCalcPollInterval()
+{
+    if(!lastBTTFNpacket) {
+        // We never received anything. Grow polling interval
+        if(!BTTFNstopGrowInt) {
+            unsigned long pollingTime = millis() - BTTFNstartPolling;
+            if(pollingTime < 5*60*1000) {
+                return BTTFN_POLL_INT;
+            } else if(pollingTime < 10*60*1000) {
+                return BTTFN_POLL_INT * 3;
+            } else if(pollingTime < 30*60*1000) {
+                return BTTFN_POLL_INT * 6;
+            }
+            BTTFNstopGrowInt = true;
+        }
+        return BTTFN_POLL_INT * 30;
+    }
+
+    return BTTFN_POLL_INT;
+}
+
 static bool bttfn_connected()
 {
     if(!useBTTFN)
@@ -3292,7 +3309,7 @@ void bttfn_loop()
         if(!BTTFNWiFiUp && (WiFi.status() == WL_CONNECTED)) {
             BTTFNUpdateNow = 0;
         }
-        if((!BTTFNUpdateNow) || (now - BTTFNUpdateNow > bttfnJBPollInt)) {
+        if((!BTTFNUpdateNow) || (now - BTTFNUpdateNow > BTTFNCalcPollInterval())) {
             BTTFNSendRequest();
         }
     }

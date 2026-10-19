@@ -4,6 +4,7 @@
  * (C) 2026 Thomas Winischhofer (A10001986)
  * https://github.com/realA10001986/Jukebox
  * https://jukebox.out-a-ti.me
+ * This code was written without the use of artificial intelligence.
  *
  * LEDs handling
  *
@@ -340,8 +341,6 @@ PanelLEDs::PanelLEDs()
 // Initialize I2C
 void PanelLEDs::begin()
 {
-    bool foundSt = false;
-
     // Auto-detect PanelLED board revision
     _adr1 = MCP23017_1_ADDR;
     _adr2 = MCP23017_2_ADDR;

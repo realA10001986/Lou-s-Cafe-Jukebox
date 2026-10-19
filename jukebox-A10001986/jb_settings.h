@@ -110,9 +110,10 @@ void reInstallFlashFS();
 void moveSettings();
 
 bool check_allow_CPA();
-bool check_if_default_audio_present();
-bool prepareCopyAudioFiles();
-void doCopyAudioFiles();
+bool check_for_new_sp();
+size_t idSpCallback(uint8_t *buf, size_t len);
+bool prepare_install_sp();
+void do_install_sp();
 void delete_ID_file();
 
 #define MAX_SIM_UPLOADS 16
@@ -144,7 +145,7 @@ bool parse_mp_backchannel(const char *msg, struct mp_rem_stat *mp_stat);
 #define DEF_PLAY_JB_SND     1     // 1: Play jukebox sounds, 0: do not
 #define DEF_PLAY_ALM_SND    0     // 1: Play TCD-alarm sound, 0: do not
 
-#define DEF_TCD_IP          ""    // TCD hostname (or ip address) for BTTFN
+#define DEF_TCD_IP          ""    // TCD hostname for BTTFN
 #define DEF_USE_NM          0     // 0: Ignore TCD night mode; 1: Follow TCD night mode
 #define DEF_NMB             1     // 1: Turn on blue light in NM, 0: Don't
 #define DEF_IGN_TT          0     // 1: Ignore TCD-TTs, 0: Do "TT Sequence"
