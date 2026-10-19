@@ -7,7 +7,7 @@
  * Version 2.0.15
  * License MIT
  *
- * Adapted by Thomas Winischhofer (A10001986)
+ * Adapted/rewritten by Thomas Winischhofer (A10001986)
  */
 
 #ifndef _WM_STRINGS_EN_H_
@@ -201,6 +201,7 @@ static const char HTTP_FORM_LABEL[]       PROGMEM = "<label for='{i}'>{t}</label
 static const char HTTP_FORM_PARAM_HEAD[]  PROGMEM = "<hr>";
 static const char HTTP_FORM_PARAM[]       PROGMEM = "<input id='{i}' name='{i}' {l} value='{v}' {c} {f}>";
 static const char HTTP_FORM_END[]         PROGMEM = "<button type='submit'>Save</button></form>";
+static const char HTTP_PAT_IP[]           PROGMEM = "pattern='^((25[0-5]|(2[0-4]|1\\d|[1-9]|)\\d)\\.?\\b){4}$'";
 
 static const char HTTP_FORM_WIFI_HDR[]    PROGMEM = "<div class='ss'><div class='hl'>Connect " DEVNAME " to WiFi network</div>";
 // LIST
@@ -247,11 +248,7 @@ static const char HTTP_UPLOAD_LINK1[]     PROGMEM = "<a href='https://";
 static const char HTTP_UPLOAD_LINK2[]     PROGMEM = "' style='color:#fff' target=_blank>Update (";
 static const char HTTP_UPLOAD_LINK3[]     PROGMEM = ") available</a></div>";
 static const char HTTP_UPLOAD_LINKA[]     PROGMEM = "' target=_blank>All releases</a></div>";
-static const char HTTP_UPDATE2[]          PROGMEM = "<input type='file' name='update' accept='.bin,application/octet-stream'><br><button id='upbu' type='submit' class='h D'>Update</button></div></form>";
 #ifdef WM_UPLOAD
-static const char HTTP_UPLOADSND1[]       PROGMEM = "'uac' onsubmit=\"uplsub('uacb','upbu');\" onchange=\"uplchg(this,'uacb');\">";
-static const char HTTP_UPLOADSND1A[]      PROGMEM = "<div class='ss c' style='line-height:140%'>Sound pack (";
-static const char HTTP_UPLOADSND2[]       PROGMEM = ".bin) and/or mp3 file upload<br>";
 static const char HTTP_UPLOAD_SLINK1[]    PROGMEM = "<div class='c ba";
 static const char HTTP_UPLOAD_SLINK1A[]   PROGMEM = " bar";
 static const char HTTP_UPLOAD_SLINK1B[]   PROGMEM = " bap";
@@ -259,19 +256,42 @@ static const char HTTP_UPLOAD_SLINK1C[]   PROGMEM = "'>Required sound-pack: ";
 static const char HTTP_UPLOAD_SLINK2[]    PROGMEM = " [";
 static const char HTTP_UPLOAD_SLINK2A[]   PROGMEM = "<b>not</b> ";
 static const char HTTP_UPLOAD_SLINK2B[]   PROGMEM = "partly ";
-static const char HTTP_UPLOAD_SLINK3[]    PROGMEM = "installed]</div>";
-static const char HTTP_UPLOADSND3[]       PROGMEM = "<input type='file' name='upac' multiple accept='.bin,application/octet-stream,.mp3,audio/mpeg'><br><button id='uacb' type='submit' class='h'>Upload</button></div></form>";
-static const char HTTP_UPLOAD_SDMSG[]     PROGMEM = "<br>SD card required for sound upload</div>";
+static const char HTTP_UPLOAD_SLINK3[]    PROGMEM = "installed]";
 #endif
 
-static const char HTTP_UPDATE_FAIL1[]     PROGMEM = "<div class='msg D'><b>Upload failed.</b><br>";
-#ifdef WM_FWPROT
-static const char HTTP_UPDATE_FAILF[]     PROGMEM = "Filename must contain \"" WM_FWPROT "\"";
-#else
-static const char HTTP_UPDATE_FAILF[]     PROGMEM = "";
+static const char HTTP_UPDATE2[]          PROGMEM = "<input type='file' name='update' accept='.bin,application/octet-stream'><br><button id='upbu' type='submit' class='h D'>Update</button></div></form>";
+#ifdef WM_UPLOAD
+static const char HTTP_UPLOADSND1[]       PROGMEM = "'uac' onsubmit=\"uplsub('uacb','upbu');\" onchange=\"uplchg(this,'uacb');\">";
+static const char HTTP_UPLOADSND1A[]      PROGMEM = "<div class='ss c' style='line-height:140%'>mp3 file upload<br>";
+static const char HTTP_UPLOADSND3[]       PROGMEM = "<input type='file' name='upac' multiple accept='.mp3,audio/mpeg'><br><button id='uacb' type='submit' class='h'>Upload</button></div></form>";
+static const char HTTP_UPLOAD_SDMSG[]     PROGMEM = "<br>SD card required for upload</div>";
 #endif
-#define           HTTP_UPDATE_FAIL2       HTTP_DIV_END
-static const char HTTP_UPDATE_SUCCESS[]   PROGMEM = "<div id='lc' class='msg S'><b>Upload complete.</b><br>Device rebooting.</div>";
+
+static const char HTTP_UPDATE_SUCCESS[]   PROGMEM = "<div id='lc' class='msg S'><b>Update complete.</b><br>Device rebooting.";
+#ifdef WM_UPLOAD
+static const char HTTP_UPDATE_SUCCESS_I[] PROGMEM = "<br>Installation will proceed after reboot.";
+#endif
+#define           HTTP_UPDATE_SUCCESS_TL  HTTP_DIV_END
+
+static const char HTTP_UPDATE_FAIL_HD[]   PROGMEM = "<div class='msg D'><b>Update ";
+static const char HTTP_UPDATE_FAIL_CO[]   PROGMEM = "failed.</b><br>";
+static const char HTTP_UPDATE_FAIL_PA[]   PROGMEM = "partially failed.</b><br>";
+#ifdef WM_FWPROT
+#ifdef WM_UPLOAD
+static const char HTTP_UPDATE_FAIL_FN[]   PROGMEM = "Filename must contain \"" WM_FWPROT "\" or \"" WM_FWPROTSP "\"";
+#else
+static const char HTTP_UPDATE_FAIL_FN[]   PROGMEM = "Filename must contain \"" WM_FWPROT "\"";
+#endif
+#else
+static const char HTTP_UPDATE_FAIL_FN[]   PROGMEM = "";
+#endif
+#ifdef WM_UPLOAD
+static const char HTTP_UPDATE_FAIL_SP[]   PROGMEM = "Sound-pack: ";
+static const char HTTP_UPDATE_FAIL_NOSD[] PROGMEM = "Updating requires SD card";
+static const char HTTP_UPDATE_FAIL_OP[]   PROGMEM = "Failed to open file on SD";
+static const char HTTP_UPDATE_FAIL_WE[]   PROGMEM = "Write Error. Check your SD card.";
+#endif
+#define           HTTP_UPDATE_FAIL_TL     HTTP_DIV_END
 
 static const char HTTP_STATUS_HEAD[]      PROGMEM = "<div class='sta'><span class='{c}'>&#x25CF;</span> ";
 #define           HTTP_STATUS_TAIL        HTTP_DIV_END

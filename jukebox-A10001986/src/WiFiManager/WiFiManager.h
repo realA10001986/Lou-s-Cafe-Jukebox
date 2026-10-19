@@ -7,7 +7,7 @@
  * Version 2.0.15
  * License MIT
  *
- * Adapted by Thomas Winischhofer (A10001986)
+ * Adapted/rewritten by Thomas Winischhofer (A10001986)
  */
 
 
@@ -54,6 +54,10 @@
 #define WM_CP_DESTROY       3
 
 // Selector for allocParms, addParameter, getParameters, getParameterCount
+#ifndef WM_PARAM2
+#undef WM_PARAM3
+#endif
+
 #define WM_PARM_WIFI       0
 #define WM_PARM_SETTINGS   1
 #ifdef WM_PARAM2
@@ -243,6 +247,19 @@ class WiFiManager
 		void          setPostOtaUpdateCallback(void(*func)(bool))
 		                              { _postotaupdatecallback = func; };
 
+    #ifdef WM_UPLOAD
+    void          setPackedOTACallbacks(bool(*ofunc)(), bool(*wfunc)(uint8_t *, size_t), void(*cfunc)(bool))
+                                  { _potaopencb = ofunc;
+                                    _potawritecb = wfunc;
+                                    _potaclosecb = cfunc; };
+    void          setIdDfCallback(bool(*dfunc)(uint8_t *, size_t), size_t(*efunc)(uint8_t *, size_t))
+                                  { _uploadIdCf = dfunc;
+                                    _uploadIdDf = efunc; };
+    #endif
+
+    void          setUploadSpinnerCallback(void(*func)(int, int))
+                                 {  _uploadspinnercallback = func; };
+
     // add stuff to the main menu; second one to give WM the length for buf sizing
   	void          setMenuOutCallback(void(*func)(String &page, unsigned int appExtraSize))
   	                              { _menuoutcallback = func; };
@@ -290,10 +307,10 @@ class WiFiManager
     #endif
 
     // sets config for a static IP
-    void          setSTAStaticIPConfig(IPAddress& ip, IPAddress& gw, IPAddress& sn);
+    void          setSTAStaticIPConfig(bool use, IPAddress& ip, IPAddress& gw, IPAddress& sn);
 
     // sets config for a static IP with DNS
-    void          setSTAStaticIPConfig(IPAddress& ip, IPAddress& gw, IPAddress& sn, IPAddress& dns);
+    void          setSTAStaticIPConfig(bool use, IPAddress& ip, IPAddress& gw, IPAddress& sn, IPAddress& dns);
 
     // set a custom hostname, sets sta and ap dhcp client id for esp32
     // Given hostname is not copied but referenced by pointer
@@ -419,6 +436,7 @@ class WiFiManager
     IPAddress     _sta_static_gw;
     IPAddress     _sta_static_sn;
     IPAddress     _sta_static_dns;
+    bool          _use_sta_ip;
 
     uint16_t      _lastconxresult         = TWL_STATUS_NONE; // store last result when doing connect operations
     bool          _badBSSID               = false;
@@ -491,6 +509,67 @@ class WiFiManager
     bool          _mdnsStarted            = false;
     bool          _mdnsGoodBye            = false;
     #endif
+
+    // Flags
+    bool          APPortalActive       = false;
+    bool          STAPortalActive      = false;
+
+    int8_t        _uplError            = 0;
+    int8_t        _updError            = 0;
+    int8_t        _uplStage            = 0;
+    bool          _uploadIsCF          = false;
+    #ifdef WM_UPLOAD
+    size_t        _uploadDataSize      = 0;
+    union {
+        struct {
+            size_t  _uploadTotalSize;
+            size_t  _uploadProgress;
+        };
+        uint8_t _uplBuf[12];
+    };
+    #endif
+
+    // WiFiManagerParameters
+    int           _paramsCount[WM_PARAM_ARRS]     = { 0 };
+    int           _max_params[WM_PARAM_ARRS];     // Initialized in WiFiManagerInit()
+    WiFiManagerParameter** _params[WM_PARAM_ARRS] = { NULL };
+
+    // Callbacks
+    #ifdef WM_APCALLBACK
+    void (*_apcallback)(WiFiManager*)                                   = NULL;
+    #endif
+    void (*_webservercallback)(void)                                    = NULL;
+    void (*_savewificallback)(const char *, const char *, const char *) = NULL;
+    void (*_presavewificallback)(void)                                  = NULL;
+    #ifdef WM_PRESAVECB
+    void (*_presaveparamscallback)(int)                                 = NULL;
+    #endif
+    void (*_saveparamscallback)(int)                                    = NULL;
+    void (*_preotaupdatecallback)(void)                                 = NULL;
+    void (*_postotaupdatecallback)(bool)                                = NULL;
+    #ifdef WM_UPLOAD
+    bool (*_potaopencb)(void)                                           = NULL;
+    bool (*_potawritecb)(uint8_t *, size_t)                             = NULL;
+    void (*_potaclosecb)(bool)                                          = NULL;
+    bool (*_uploadIdCf)(uint8_t *, size_t)                              = NULL;
+    size_t (*_uploadIdDf)(uint8_t *, size_t)                            = NULL;
+    #endif
+    void (*_uploadspinnercallback)(int, int)                            = NULL;
+	  void (*_menuoutcallback)(String&, unsigned int)                     = NULL;
+	  int  (*_menuoutlencallback)(void)                                   = NULL;
+	  void (*_delayreplacement)(unsigned int)                             = NULL;
+	  void (*_gpcallback)(int)                                            = NULL;
+	  bool (*_prewifiscancallback)(void)                                  = NULL;
+	  #ifdef WM_PRECONNECTCB
+	  void (*_preconnectcallback)(void)                                   = NULL;
+	  #endif
+	  #ifdef WM_EVENTCB
+	  void (_wifieventcallback)(WiFiEvent_t event)                        = NULL;
+	  #endif
+	  #ifdef WM_CCM
+	  void (*_setCCarMode)(bool)                                          = NULL;
+	  #endif
+	  void (*_waitforconnectcallback)(void)                               = NULL;
 
     void          _begin();
     void          _end();
@@ -584,7 +663,7 @@ class WiFiManager
 	  int           htmlEntitiesLen(String& str, bool forprint = false);
 	  bool          checkSSID(String& ssid);
 
-	  long          wmmap(long x);
+	  int           wmmap(long x);
 	  void          _delay(unsigned int mydel);
 
     // internal version
@@ -594,46 +673,6 @@ class WiFiManager
     void          WiFiEvent(WiFiEvent_t event, arduino_event_info_t info);
     void          installWiFiEventHandler();
     void          andWiFiEventMask(uint32_t to_and);
-
-    // Flags
-    bool          APPortalActive       = false;
-    bool          STAPortalActive      = false;
-
-    int8_t        _uplError            = 0;
-
-    // WiFiManagerParameters
-    int           _paramsCount[WM_PARAM_ARRS]     = { 0 };
-    int           _max_params[WM_PARAM_ARRS];     // Initialized in WiFiManagerInit()
-    WiFiManagerParameter** _params[WM_PARAM_ARRS] = { NULL };
-
-    // Callbacks
-    #ifdef WM_APCALLBACK
-    void (*_apcallback)(WiFiManager*)                                   = NULL;
-    #endif
-    void (*_webservercallback)(void)                                    = NULL;
-    void (*_savewificallback)(const char *, const char *, const char *) = NULL;
-    void (*_presavewificallback)(void)                                  = NULL;
-    #ifdef WM_PRESAVECB
-    void (*_presaveparamscallback)(int)                                 = NULL;
-    #endif
-    void (*_saveparamscallback)(int)                                    = NULL;
-    void (*_preotaupdatecallback)(void)                                 = NULL;
-    void (*_postotaupdatecallback)(bool)                                = NULL;
-	  void (*_menuoutcallback)(String&, unsigned int)                     = NULL;
-	  int  (*_menuoutlencallback)(void)                                   = NULL;
-	  void (*_delayreplacement)(unsigned int)                             = NULL;
-	  void (*_gpcallback)(int)                                            = NULL;
-	  bool (*_prewifiscancallback)(void)                                  = NULL;
-	  #ifdef WM_PRECONNECTCB
-	  void (*_preconnectcallback)(void)                                   = NULL;
-	  #endif
-	  #ifdef WM_EVENTCB
-	  void (_wifieventcallback)(WiFiEvent_t event)                        = NULL;
-	  #endif
-	  #ifdef WM_CCM
-	  void (*_setCCarMode)(bool)                                          = NULL;
-	  #endif
-	  void (*_waitforconnectcallback)(void)                               = NULL;
 
     #ifdef _A10001986_DBG
     // get a status as string

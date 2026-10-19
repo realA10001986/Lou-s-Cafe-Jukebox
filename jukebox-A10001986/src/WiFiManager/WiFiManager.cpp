@@ -7,7 +7,7 @@
  * Version 2.0.15
  * License MIT
  *
- * Adapted by Thomas Winischhofer (A10001986)
+ * Adapted/rewritten by Thomas Winischhofer (A10001986)
  */
 
 // prep string concat vars
@@ -696,7 +696,7 @@ uint8_t WiFiManager::waitForConnectResult(bool haveStatic, unsigned long timeout
 
 bool WiFiManager::setStaticConfig()
 {
-    if(_sta_static_ip) {
+    if(_sta_static_ip && _use_sta_ip) {
         bool ret;
 
         #ifdef _A10001986_DBG
@@ -721,7 +721,7 @@ bool WiFiManager::setStaticConfig()
     } else {
 
         #ifdef _A10001986_DBG
-        Serial.println("No static IP configured");
+        Serial.println("Static IP unconfigured/ignored");
         #endif
     }
 
@@ -1685,7 +1685,7 @@ unsigned int WiFiManager::getParamOutSize(int idx, unsigned int& maxItemSize)
                     if(*(params[i]->getValue()) == '1') mysize += 7;  // "checked"
                     mysize += STRLEN(HTML_CHKBOX);
                 } else {
-                    mysize += 5+12; // "maxlength='%d'
+                    mysize += 12+7; // "maxlength='%d'
                     mysize += strlen(params[i]->getValue());
                 }
                 if(params[i]->getCustomHTML()) {
@@ -1733,11 +1733,11 @@ void WiFiManager::getParamOut(String &page, int idx, unsigned int maxItemSize)
     WiFiManagerParameter** params = _params[idx];
     int paramsCount = _paramsCount[idx];
     char idxmarker = idx + 'A';
-    char pids[6];
+    char pids[8];
 
     if(paramsCount > 0) {
 
-        char valLength[12+6];
+        char valLength[12+8];
 
         // Allocate it once, re-use it
         String pitem;
@@ -1772,7 +1772,7 @@ void WiFiManager::getParamOut(String &page, int idx, unsigned int maxItemSize)
 
                 bool haveLabel = true;
 
-                sprintf(pids, "w%c%02x", idxmarker, pid);
+                sprintf(pids, WEBFORMID "%c%02x", idxmarker, pid);
 
                 switch(pflags & WFM_LABEL_MASK) {
                 case WFM_LABEL_BEFORE:
@@ -1806,7 +1806,7 @@ void WiFiManager::getParamOut(String &page, int idx, unsigned int maxItemSize)
                     pitem.replace(FPSTR(T_v), "1"); // value is ALWAYS "1"!
                     pitem.replace(FPSTR(T_f), HTML_CHKBOX);
                 } else {
-                    snprintf(valLength, 12+5, "maxlength='%d'", params[i]->getValueLength());
+                    snprintf(valLength, 12+6, "maxlength='%d'", params[i]->getValueLength());
                     pitem.replace(FPSTR(T_l), valLength);              // T_l maxlength='value length'
                     pitem.replace(FPSTR(T_v), params[i]->getValue());  // T_v value
                     pitem.replace(FPSTR(T_f), "");
@@ -1861,7 +1861,7 @@ void WiFiManager::doParamSave(int idx)
     WiFiManagerParameter** params = _params[idx];
     int paramsCount = _paramsCount[idx];
     char idxmarker = idx + 'A';
-    char pids[6];
+    char pids[8];
     int16_t pid;
 
     if(paramsCount > 0) {
@@ -1883,7 +1883,7 @@ void WiFiManager::doParamSave(int idx)
                 continue;
             }
 
-            sprintf(pids, "w%c%02x", idxmarker, pid);
+            sprintf(pids, WEBFORMID "%c%02x", idxmarker, pid);
 
             // read parameter from server
             String value = server->arg(pids);
@@ -2442,7 +2442,7 @@ void WiFiManager::getIpForm(String& page, const char *id, const char *title, IPA
     // <label for='{i}'>{t}</label>
     // <input id='{i}' name='{i}' {l} value='{v}' {c} {f}>
 
-    unsigned int s = STRLEN(HTTP_FORM_LABEL) + STRLEN(HTTP_FORM_PARAM) - (8*3) + (2*STRLEN(HTTP_BR));
+    unsigned int s = STRLEN(HTTP_FORM_LABEL) + STRLEN(HTTP_FORM_PARAM) - (8*3) + (2*STRLEN(HTTP_BR)) + STRLEN(HTTP_PAT_IP);
     s += (3*strlen(id)) + strlen(title);
     s += (12+2) + 15;
     if(placeholder) s += strlen(placeholder);
@@ -2459,7 +2459,7 @@ void WiFiManager::getIpForm(String& page, const char *id, const char *title, IPA
     item.replace(FPSTR(T_l), F("maxlength='15'"));
     item.replace(FPSTR(T_v), value ? value.toString() : "");
     item.replace(FPSTR(T_c), placeholder ? placeholder : "");
-    item.replace(FPSTR(T_f), "");
+    item.replace(FPSTR(T_f), HTTP_PAT_IP);
 
     page += item;
 }
@@ -2477,14 +2477,14 @@ unsigned int WiFiManager::getStaticLen()
         mySize += STRLEN(HTTP_FORM_SECT_HEAD);
     }
     if(showSta) {
-        mySize += (3 * (STRLEN(HTTP_FORM_LABEL) + STRLEN(HTTP_FORM_PARAM) - (8*3) + (2*STRLEN(HTTP_BR))));
+        mySize += (3 * (STRLEN(HTTP_FORM_LABEL) + STRLEN(HTTP_FORM_PARAM) - (8*3) + (2*STRLEN(HTTP_BR)) + STRLEN(HTTP_PAT_IP)));
         mySize += (3*STRLEN(S_ip)) + STRLEN(S_staticip) + (12+2) + 15;
         mySize += STRLEN(HTTP_FORM_WIFI_PH);
         mySize += (3*STRLEN(S_sn)) + STRLEN(S_subnet) + (12+2) + 15;
         mySize += (3*STRLEN(S_gw)) + STRLEN(S_staticgw) + (12+2) + 15;
     }
     if(showDns) {
-        mySize += STRLEN(HTTP_FORM_LABEL) + STRLEN(HTTP_FORM_PARAM) - (8*3) + (2*STRLEN(HTTP_BR));
+        mySize += STRLEN(HTTP_FORM_LABEL) + STRLEN(HTTP_FORM_PARAM) - (8*3) + (2*STRLEN(HTTP_BR)) + STRLEN(HTTP_PAT_IP);
         mySize += (3*STRLEN(S_dns)) + STRLEN(S_staticdns) + (12+2) + 15;
     }
     if(showSta || showDns) {
@@ -3114,21 +3114,22 @@ void WiFiManager::handleUpdate()
     }
     #endif
 
-#ifdef WM_UPLOAD
-    if(_showUploadSnd) {
-        mySize += STRLEN(HTTP_UPDATE_FORM) + STRLEN(HTTP_UPLOADSND1);
-        mySize += STRLEN(HTTP_UPLOADSND1A) + STRLEN(HTTP_UPLOADSND2) + STRLEN(HTTP_UPLOADSND3);
-    } else {
-        mySize += STRLEN(HTTP_UPLOADSND1A) + STRLEN(HTTP_UPLOAD_SDMSG);
-    }
-    mySize += strlen(_sndContName);
-    if(_sndContVer) {
+    #if defined(WM_UPLOAD) && !defined(WM_INSTALLER)
+    if(_sndContVer && (_sndIsInstalled <= 0)) {
         mySize += STRLEN(HTTP_UPLOAD_SLINK1) + STRLEN(HTTP_UPLOAD_SLINK1C) + STRLEN(HTTP_UPLOAD_SLINK2) + STRLEN(HTTP_UPLOAD_SLINK3);
         mySize += strlen(_sndContVer);
         if(!_sndIsInstalled)          mySize += STRLEN(HTTP_UPLOAD_SLINK1A) + STRLEN(HTTP_UPLOAD_SLINK2A);
         else if(_sndIsInstalled < 0)  mySize += STRLEN(HTTP_UPLOAD_SLINK1B) + STRLEN(HTTP_UPLOAD_SLINK2B);
+        if(_showUploadSnd) mySize += STRLEN(HTTP_DIV_END);
+        else               mySize += STRLEN(HTTP_UPLOAD_SDMSG);
     }
-#endif
+    if(_showUploadSnd) {
+        mySize += STRLEN(HTTP_UPDATE_FORM) + STRLEN(HTTP_UPLOADSND1);
+        mySize += STRLEN(HTTP_UPLOADSND1A) + STRLEN(HTTP_UPLOADSND3);
+    } else {
+        mySize += STRLEN(HTTP_UPLOADSND1A) + STRLEN(HTTP_UPLOAD_SDMSG);
+    }
+    #endif
 
     mySize += STRLEN(HTTP_END);
 
@@ -3170,17 +3171,8 @@ void WiFiManager::handleUpdate()
         page += FPSTR(HTTP_DIV_END);
     }
     #endif
-    page += FPSTR(HTTP_UPDATE2);
-
-#ifdef WM_UPLOAD
-    if(_showUploadSnd) {
-        page += FPSTR(HTTP_UPDATE_FORM);
-        page += FPSTR(HTTP_UPLOADSND1);
-    }
-    page += FPSTR(HTTP_UPLOADSND1A);
-    page += _sndContName;
-    page += FPSTR(HTTP_UPLOADSND2);
-    if(_sndContVer) {
+    #if defined(WM_UPLOAD) && !defined(WM_INSTALLER)
+    if(_sndContVer && (_sndIsInstalled <= 0)) {
         page += FPSTR(HTTP_UPLOAD_SLINK1);
         if(!_sndIsInstalled)          page += FPSTR(HTTP_UPLOAD_SLINK1A);
         else if(_sndIsInstalled < 0)  page += FPSTR(HTTP_UPLOAD_SLINK1B);
@@ -3190,13 +3182,25 @@ void WiFiManager::handleUpdate()
         if(!_sndIsInstalled)          page += FPSTR(HTTP_UPLOAD_SLINK2A);
         else if(_sndIsInstalled < 0)  page += FPSTR(HTTP_UPLOAD_SLINK2B);
         page += FPSTR(HTTP_UPLOAD_SLINK3);
+        if(_showUploadSnd) page += FPSTR(HTTP_DIV_END);
+        else               page += FPSTR(HTTP_UPLOAD_SDMSG);
     }
+    #endif
+
+    page += FPSTR(HTTP_UPDATE2);
+
+    #if defined(WM_UPLOAD) && !defined(WM_INSTALLER)
+    if(_showUploadSnd) {
+        page += FPSTR(HTTP_UPDATE_FORM);
+        page += FPSTR(HTTP_UPLOADSND1);
+    }
+    page += FPSTR(HTTP_UPLOADSND1A);
     if(_showUploadSnd) {
         page += FPSTR(HTTP_UPLOADSND3);
     } else {
         page += FPSTR(HTTP_UPLOAD_SDMSG);
     }
-#endif
+    #endif
 
     page += FPSTR(HTTP_END);
 
@@ -3214,13 +3218,20 @@ void WiFiManager::handleUpdate()
 // upload via /u POST
 void WiFiManager::handleUpdating()
 {
-    // handler for the file upload, get's the sketch bytes, and writes
-    // them through the Update object
     HTTPUpload& upload = server->upload();
+    #define CFHD 12
 
     if(upload.status == UPLOAD_FILE_START) {
 
-        _uplError = 0;
+        _uplError = _updError = 0;
+        _uploadIsCF = false;
+        #ifdef WM_UPLOAD
+        _uplStage = 0;
+        _uploadDataSize = 0;
+        #else
+        _uplStage = 2;
+        _uplError = -1;  // No Combo-Firmware
+        #endif
 
         // Callback for before OTA update
         if(_preotaupdatecallback) {
@@ -3232,50 +3243,207 @@ void WiFiManager::handleUpdating()
         #endif
 
         #ifdef WM_FWPROT
-        if(!mystrstr(upload.filename.c_str(), WM_FWPROT)) {
+        #ifdef WM_UPLOAD
+        if(!mystrstr(upload.filename.c_str(), WM_FWPROT) && !mystrstr(upload.filename.c_str(), WM_FWPROTSP))
+        #else
+        if(!mystrstr(upload.filename.c_str(), WM_FWPROT))
+        #endif
+        {
             #ifdef _A10001986_DBG
             Serial.println("[ERROR] OTA Update ERROR: Bad filename\n");
             #endif
-            _uplError = -1;
-        } else
-        #endif
-        if(!Update.begin(UPDATE_SIZE_UNKNOWN)) {
-            #ifdef _A10001986_DBG
-            Serial.printf("[ERROR] OTA Update ERROR %d\n", Update.getError());
-            #endif
             _uplError = 1;
+        }
+        #endif
+
+        if(_uploadspinnercallback) {
+            _uploadspinnercallback(1, -1);
         }
 
     } else if(upload.status == UPLOAD_FILE_WRITE) {
 
-        if(!_uplError) {
+        uint8_t *buf = upload.buf;
+        size_t  currentSize = upload.currentSize;
+        #ifdef WM_UPLOAD
+        size_t  wlen;
+        #endif
+        int percent = -1;
 
-            if(Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-                #ifdef _A10001986_DBG
-                Serial.printf("[ERROR] OTA Update WRITE ERROR %d\n", Update.getError());
-                #endif
-                _uplError = 1;
+        if(_uplError != 1) {
+
+            #ifdef WM_UPLOAD
+
+            if(!_uplStage) {
+                if(_uploadDataSize < CFHD) {
+                    int len = (CFHD - _uploadDataSize) < currentSize ? (CFHD - _uploadDataSize) : currentSize;
+                    memcpy(_uplBuf + _uploadDataSize, buf, len);
+                    _uploadDataSize += len;
+                    currentSize -= len;
+                    buf += len;
+                }
+                if(_uploadDataSize >= CFHD) {
+                    size_t t = 0;
+                    if( (_uploadIdCf && (_uploadIsCF = _uploadIdCf(_uplBuf, CFHD))) ||
+                        (_uploadIdDf && (t = _uploadIdDf(_uplBuf, CFHD))) ) {
+                        _uplStage = 1;
+                        if(_potaopencb && _potawritecb && _potaclosecb) {
+                            if(!_potaopencb()) {
+                                _uplError = 3;   // Can't open data file on SD
+                            } else if(!_uploadIsCF) {
+                                // We detected a pure data file: Write out buffer first
+                                if(!_potawritecb(_uplBuf, CFHD)) {
+                                    #ifdef _A10001986_DBG
+                                    Serial.println("[ERROR] OTA data file write error");
+                                    #endif
+                                    _uplError = 4;   // Write error
+                                }
+                            }
+                        } else {
+                            _uplError = _uploadIsCF ? 12 : 2;  // No SD card
+                        }
+                        if(_uploadIsCF) {
+                            #ifdef ESP32
+                            _uploadDataSize = (size_t)(((uint32_t *)_uplBuf)[2]);
+                            _uploadTotalSize = (size_t)(((uint32_t *)_uplBuf)[1]);
+                            #else
+                            _uploadDataSize = _uplBuf[8] | (_uplBuf[9] << 8) | (_uplBuf[10] << 16) | (_uplBuf[11] << 24);
+                            _uploadTotalSize = _uplBuf[4] | (_uplBuf[5] << 8) | (_uplBuf[6] << 16) | (_uplBuf[7] << 24);
+                            #endif
+                            #ifdef _A10001986_DBG
+                            Serial.printf("Upload total size %d, data file size: %d, \n", _uploadTotalSize, _uploadDataSize);
+                            #endif
+                        } else {
+                            _uploadTotalSize = (t > 1) ? t : 0;
+                            _updError = -1;
+                        }
+                        _uploadProgress = 0;
+                    } else {
+                        // A pure firmware file, no Combo-Firmware
+                        _uplError = -1;
+                        _uplStage = 2;
+                    }
+                }
             }
 
+            if(_uplStage == 1) {
+                if(_uploadIsCF) {
+                    if(_uploadDataSize > currentSize) {
+                        wlen = currentSize;
+                        _uploadDataSize -= currentSize;
+                    } else {
+                        wlen = _uploadDataSize;
+                        currentSize -= wlen;
+                        _uploadDataSize = 0;
+                        _uplStage = 2;
+                    }
+                } else {
+                    wlen = currentSize;
+                }
+                if(wlen && !_uplError) {
+                    if(!_potawritecb(buf, wlen)) {
+                        #ifdef _A10001986_DBG
+                        Serial.println("[ERROR] OTA data file write error");
+                        #endif
+                        _uplError = 4;   // Write error
+                    }
+                }
+                if(_uplStage != 1) {
+                    if(_potaclosecb) _potaclosecb(!!_uplError);
+                    #ifdef _A10001986_DBG
+                    Serial.println("[OTA] Data file closed");
+                    #endif
+                }
+                buf += wlen;
+                if(_uploadTotalSize) {
+                    _uploadProgress += wlen;
+                    percent = _uploadProgress * 100 / _uploadTotalSize;
+                }
+            }
+
+            #endif
+
+            if(_uplStage == 2) {
+                #ifdef _A10001986_DBG
+                Serial.println("OTA Update begin");
+                #endif
+                if(!Update.begin(UPDATE_SIZE_UNKNOWN)) {
+                    #ifdef _A10001986_DBG
+                    Serial.printf("[ERROR] OTA Update ERROR %d\n", Update.getError());
+                    #endif
+                    _updError = 1;
+                #ifdef WM_UPLOAD
+                } else if(_uploadDataSize) {
+                    // We detected a pure fw file: Write out buffer first
+                    if(Update.write(_uplBuf, CFHD) != CFHD) {
+                        #ifdef _A10001986_DBG
+                        Serial.printf("[ERROR] OTA Update WRITE ERROR %d\n", Update.getError());
+                        #endif
+                        _updError = 1;
+                    }
+                    _uploadTotalSize = 0; // No progress display
+                #endif
+                }
+                _uplStage = 3;
+            }
+
+            if(_uplStage == 3) {
+                if(!_updError) {
+                    if(currentSize) {
+                        if(Update.write(buf, currentSize) != currentSize) {
+                            #ifdef _A10001986_DBG
+                            Serial.printf("[ERROR] OTA Update WRITE ERROR %d\n", Update.getError());
+                            #endif
+                            _updError = 1;
+                        }
+                    }
+                    #ifdef WM_UPLOAD
+                    if(_uploadTotalSize) {
+                        _uploadProgress += currentSize;
+                        percent = _uploadProgress * 100 / _uploadTotalSize;
+                    }
+                    #endif
+                }
+            }
+
+        }
+
+        if(_uploadspinnercallback) {
+            _uploadspinnercallback(0, percent);
         }
 
     } else if(upload.status == UPLOAD_FILE_END) {
 
-        if(!_uplError) {
-
-            #ifdef _A10001986_V_DBG
-            Serial.printf("[OTA] OTA FILE END bytes: %d\n", upload.totalSize);
-            #endif
-
-            if(!Update.end(true)) {
-                _uplError = 1;
+        if(_uplStage == 3) {
+            if(!_updError) {
+                if(!Update.end(true)) {
+                    _updError = 1;
+                }
             }
-
+        #ifdef WM_UPLOAD
+        } else if(_uplStage == 1) {
+            // Close file only if it was opened
+            // which is the case when error is zero
+            // (in which case we keep it), or 4
+            // (which means a write error, and we
+            // delete it)
+            if(!_uplError || _uplError == 4) {
+                _potaclosecb((_uplError == 4));
+            }
+        #endif
         }
 
     } else if(upload.status == UPLOAD_FILE_ABORTED) {
 
-        Update.abort();
+        switch(_uplStage) {
+        #ifdef WM_UPLOAD
+        case 1:
+            _potaclosecb(true);
+            break;
+        #endif
+        case 3:
+            Update.abort();
+            break;
+        }
 
         #ifdef _A10001986_DBG
         Serial.println("[OTA] Update was aborted");
@@ -3295,6 +3463,7 @@ void WiFiManager::handleUpdating()
     }
 
     delay(0);
+    #undef CFHD
 }
 
 /*
@@ -3304,18 +3473,57 @@ void WiFiManager::handleUpdateDone()
 {
     unsigned int mySize = 0;
     uint32_t incFlags = 0;
-    bool res = (_uplError < 0) ? false : (!Update.hasError());
+    bool resUpl = (_uplError <= 0);
+    bool resUpd = (_updError > 0) ? (!Update.hasError()) : true;
 
     #ifdef _A10001986_V_DBG
     Serial.println("<- Handle update done");
     #endif
 
-    if(res) {
-        mySize += STRLEN(HTTP_UPDATE_SUCCESS);
+    if(resUpl && resUpd) {
+        mySize += STRLEN(HTTP_UPDATE_SUCCESS) + STRLEN(HTTP_UPDATE_SUCCESS_TL);
+        #ifdef WM_UPLOAD
+        if(!_uplError) mySize += STRLEN(HTTP_UPDATE_SUCCESS_I);
+        #endif
         incFlags = incGFXMSG;
+        #ifdef _A10001986_DBG
+        Serial.println("[OTA] update ok");
+        #endif
     } else {
-        mySize += STRLEN(HTTP_UPDATE_FAIL1) + STRLEN(HTTP_UPDATE_FAIL2);
-        mySize += ((_uplError < 0) ? STRLEN(HTTP_UPDATE_FAILF) : strlen(Update.errorString()));
+        mySize += STRLEN(HTTP_UPDATE_FAIL_HD) + STRLEN(HTTP_UPDATE_FAIL_TL);
+        if(_uplError == 1) {
+            mySize += STRLEN(HTTP_UPDATE_FAIL_CO) + STRLEN(HTTP_UPDATE_FAIL_FN);
+        } else {
+            if(_updError && _uplError) {
+                mySize += STRLEN(HTTP_UPDATE_FAIL_CO);
+            } else {
+                mySize += STRLEN(HTTP_UPDATE_FAIL_PA);
+            }
+            if(_updError > 0) {
+                mySize += strlen(Update.errorString());
+                if(_uplError) mySize += STRLEN(HTTP_BR);
+            }
+            #ifdef WM_UPLOAD
+            switch(_uplError) {
+            case 2:
+                mySize += STRLEN(HTTP_UPDATE_FAIL_SP) + STRLEN(HTTP_UPDATE_FAIL_NOSD);
+                break;
+            case 3:
+                mySize += STRLEN(HTTP_UPDATE_FAIL_SP) + STRLEN(HTTP_UPDATE_FAIL_OP);
+                break;
+            case 4:
+                mySize += STRLEN(HTTP_UPDATE_FAIL_SP) + STRLEN(HTTP_UPDATE_FAIL_WE);
+                break;
+            case 12:
+                mySize += STRLEN(HTTP_UPDATE_FAIL_NOSD);
+                break;
+            }
+            #endif
+        }
+        #ifdef _A10001986_DBG
+        Serial.println("[OTA] update failed");
+        Serial.printf("Upd: %d %d    Upl: %d %d\n", resUpd, _updError, resUpl, _uplError);
+        #endif
     }
 
     mySize += getHTTPHeadLength(S_titleupd, incFlags);
@@ -3331,22 +3539,54 @@ void WiFiManager::handleUpdateDone()
 
     getHTTPHeadNew(page, S_titleupd, incFlags);
 
-    if(res) {
+    if(resUpl && resUpd) {
         page += FPSTR(HTTP_UPDATE_SUCCESS);
-        #ifdef _A10001986_DBG
-        Serial.println("[OTA] update ok");
+        #ifdef WM_UPLOAD
+        if(!_uplError) page += FPSTR(HTTP_UPDATE_SUCCESS_I);
         #endif
+        page += FPSTR(HTTP_UPDATE_SUCCESS_TL);
     } else {
-        page += FPSTR(HTTP_UPDATE_FAIL1);
-        if(_uplError < 0) {
-            page += FPSTR(HTTP_UPDATE_FAILF);
+        page += FPSTR(HTTP_UPDATE_FAIL_HD);
+        if(_uplError == 1) {
+            page += FPSTR(HTTP_UPDATE_FAIL_CO);
+            page += FPSTR(HTTP_UPDATE_FAIL_FN);
         } else {
-            page += Update.errorString();
+            const char *err;
+            if(_updError && _uplError) {
+                err = HTTP_UPDATE_FAIL_CO;
+            } else {
+                err = HTTP_UPDATE_FAIL_PA;
+            }
+            page += err;
+            if(_updError > 0) {
+                page += Update.errorString();
+                if(_uplError) page += FPSTR(HTTP_BR);
+            }
+            #ifdef WM_UPLOAD
+            if(_uplError) {
+                err = NULL;
+                switch(_uplError) {
+                case 2:
+                    err = HTTP_UPDATE_FAIL_NOSD;
+                    break;
+                case 3:
+                    err = HTTP_UPDATE_FAIL_OP;
+                    break;
+                case 4:
+                    err = HTTP_UPDATE_FAIL_WE;
+                    break;
+                case 12:
+                    page += FPSTR(HTTP_UPDATE_FAIL_NOSD);
+                    break;
+                }
+                if(err) {
+                    page += FPSTR(HTTP_UPDATE_FAIL_SP);
+                    page += err;
+                }
+            }
+            #endif
         }
-        page += FPSTR(HTTP_UPDATE_FAIL2);
-        #ifdef _A10001986_DBG
-        Serial.println("[OTA] update failed");
-        #endif
+        page += FPSTR(HTTP_UPDATE_FAIL_TL);
     }
 
     page += FPSTR(HTTP_END);
@@ -3354,7 +3594,7 @@ void WiFiManager::handleUpdateDone()
     HTTPSend(page, false);
 
     if(_postotaupdatecallback) {
-        _postotaupdatecallback(res);
+        _postotaupdatecallback((resUpl && resUpd));
     }
 
     #ifdef WM_MDNS
@@ -3412,17 +3652,18 @@ void WiFiManager::setAPStaticIPConfig(IPAddress& ip, IPAddress& gw, IPAddress& s
 #endif
 
 // Set static IP for STA
-void WiFiManager::setSTAStaticIPConfig(IPAddress& ip, IPAddress& gw, IPAddress& sn)
+void WiFiManager::setSTAStaticIPConfig(bool use, IPAddress& ip, IPAddress& gw, IPAddress& sn)
 {
     _sta_static_ip = ip;
     _sta_static_gw = gw;
     _sta_static_sn = sn;
+    _use_sta_ip = use;
 }
 
 // Set static IP + DNS for STA
-void WiFiManager::setSTAStaticIPConfig(IPAddress& ip, IPAddress& gw, IPAddress& sn, IPAddress& dns)
+void WiFiManager::setSTAStaticIPConfig(bool use, IPAddress& ip, IPAddress& gw, IPAddress& sn, IPAddress& dns)
 {
-    setSTAStaticIPConfig(ip, gw, sn);
+    setSTAStaticIPConfig(use, ip, gw, sn);
     _sta_static_dns = dns;
 }
 
@@ -3742,7 +3983,7 @@ bool WiFiManager::getBestAPChannel(int32_t& channel, int& quality)
 
 void WiFiManager::getDefaultAPName(char *apName)
 {
-    sprintf(apName, "ESP32_%x", ESP.getEfuseMac());
+    sprintf(apName, "ESP32_%x", (int)ESP.getEfuseMac() & 0xffffffff);
     while(*apName) {
         *apName = toupper((unsigned char) *apName);
         apName++;
@@ -3842,7 +4083,7 @@ bool WiFiManager::checkSSID(String &ssid)
 }
 
 // map rssi to "quality" 1-4
-long WiFiManager::wmmap(long x)
+int WiFiManager::wmmap(long x)
 {
     if(x <= -83) return 1;
     if(x <= -74) return 2;
@@ -3943,6 +4184,7 @@ void WiFiManager::WiFiEvent(WiFiEvent_t event, arduino_event_info_t info)
         #ifdef _A10001986_DBG
         Serial.printf("Callback: Async scan finished, %d networks\n", _numNetworksAsync);
         #endif
+    default:
         break;
     }
 

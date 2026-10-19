@@ -1,22 +1,13 @@
 /**
  * wm_local.h - Jukebox
  *
- * Based on:
- * WiFiManager, a library for the ESP32/Arduino platform
- * Creator tzapu (tablatronix)
- * Version 2.0.15
- * License MIT
- *
- * Adapted by Thomas Winischhofer (A10001986)
  */
 
 #ifndef wm_local_h
 #define wm_local_h
 
-//#define _A10001986_DBG
-//#define _A10001986_V_DBG
-
 #define DEVNAME "Jukebox"
+#define WEBFORMID "J"
 
 #define WM_MDNS
 
@@ -35,9 +26,6 @@
 #define WM_PARAM3_TITLE "HA/MQTT Settings"
 #endif
 
-// For display of required firmware version (hardware-dependent)
-//#define WM_FW_HW_VER
-
 // Show sound upload form (or "SD required" message")
 #define WM_UPLOAD
 
@@ -45,6 +33,10 @@
 //#define WM_CCM
 
 #define WM_FWPROT "JUKEBOX"
+#define WM_FWPROTSP "JBA"
+
+//#define _A10001986_DBG
+//#define _A10001986_V_DBG
 
 // #define WM_AP_STATIC_IP
 // #define WM_APCALLBACK
