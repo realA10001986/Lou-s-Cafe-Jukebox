@@ -30,7 +30,7 @@ For information on installing or updating the firmware of your Jukebox, see [her
 
 **Some key features of your Jukebox require an SD card.** The first step is therefore to put a **good-quality** ("endurance", "industrial", "long life", ...) **and empty microSD card into the card slot**. The SD card must be inserted before powering up the Jukebox. It is not recognized if inserted while the Jukebox is running. Furthermore, do not remove the SD card while the Jukebox is powered.
 
->SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Ultra and Industrial, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
+>SD/SDHC/SDXC cards up to 32GB are supported. Card needs to be FAT32-formatted (not exFAT). Transcend, Sandisk Industrial and Ultra, Verbatim Premium and Samsung Pro Endurance SDHC cards usually work fine. Some SD cards might not be recognized due to off-specs initialization quirks. SDUC cards are not supported.
 
 >Since the SD card on the control board is inaccessible after assembling the Jukebox, installing a microSD extension (like [this one](https://www.amazon.com/Memory-Micro-SD-Female-Extension-Extender/dp/B09MS85FQ3/)) is recommended.
 
